@@ -1,5 +1,7 @@
 package com.barbermot.pilot;
 
+import ioio.lib.api.exception.ConnectionLostException;
+
 public class AutoControl implements SignalListener {
 
 	public AutoControl(ControlListener control) {
@@ -7,7 +9,7 @@ public class AutoControl implements SignalListener {
 		this.isFirst = true;
 	}
 
-	public void update(double value, long time) {
+	public void update(double value, long time) throws ConnectionLostException {
 		if (engaged) {
 
 			if (isFirst) {
@@ -53,7 +55,7 @@ public class AutoControl implements SignalListener {
 		}
 	}
 
-	void setConfiguration(double[] conf) {
+	public void setConfiguration(double[] conf) {
 	    proportional = conf[0];
 	    integral = conf[1];
 	    derivative = conf[2];
@@ -62,31 +64,31 @@ public class AutoControl implements SignalListener {
 	    isFirst = true;
 	}
 
-	double getProportional() { 
+	public double getProportional() { 
 		return proportional; 
 	}
 	
-	void setProportional(double proportional) { 
+	public void setProportional(double proportional) { 
 		this.proportional = proportional; 
 	}
 
-	double getIntegral() { 
+	public double getIntegral() { 
 		return integral; 
 	}
 	
-	void setIntegral(double integral) { 
+	public void setIntegral(double integral) { 
 		this.integral = integral; 
 	}
 
-	double getDerivative() { 
+	public double getDerivative() { 
 		return derivative; 
 	}
 	
-	void setDerivative(double derivative) { 
+	public void setDerivative(double derivative) { 
 		this.derivative = derivative; 
 	}
 
-	double getMaxCummulative() { 
+	public double getMaxCummulative() { 
 		return maxCummulative; 
 	}
 	
@@ -94,28 +96,28 @@ public class AutoControl implements SignalListener {
 		this.maxCummulative = max; 
 	}
 
-	double getMinCummulative() { 
+	public double getMinCummulative() { 
 		return minCummulative; 
 	}
 	
-	void setMinCummulative(double min) { 
+	public void setMinCummulative(double min) { 
 		this.minCummulative = min; 
 	}
 
-	double getGoal() { 
+	public double getGoal() { 
 		return goal; 
 	}
 	
-	void setGoal(double goal) { 
+	public void setGoal(double goal) { 
 		this.goal = goal;
 		isFirst = true; 
 	}
 
-	void engage(boolean engaged) { 
+	public void engage(boolean engaged) { 
 		this.engaged = engaged; 
 	}
 	
-	boolean isEngaged() { 
+	public boolean isEngaged() { 
 		return engaged; 
 	}
 
