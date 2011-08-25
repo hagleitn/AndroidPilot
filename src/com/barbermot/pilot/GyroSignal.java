@@ -6,7 +6,11 @@ import ioio.lib.api.exception.ConnectionLostException;
 public class GyroSignal extends Signal {
 
 	public GyroSignal(IOIO ioio, int pin) throws ConnectionLostException {
-		super(ioio, pin);
+		super(ioio, pin);		
 	}
-
+	
+	@Override
+	public long measure() {
+		return 0;
+	}
 }

@@ -7,7 +7,11 @@ import ioio.lib.api.exception.ConnectionLostException;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.util.Log;
+
 public class Signal {
+	
+		public final String TAG = "Signal";
 	
 	    public Signal(IOIO ioio, int pin) throws ConnectionLostException {
 	    	this.pin = pin;
@@ -39,7 +43,7 @@ public class Signal {
 	    			long nano = System.nanoTime();
 	    			pulse.waitForValue(false);
 	    			pulse.close();
-	    			return (System.nanoTime() - nano)*1000;
+	    			return (System.nanoTime() - nano)/1000;
 	    		} catch(InterruptedException e) {}
 	    	}
 	    }
@@ -54,8 +58,10 @@ public class Signal {
 	        setupMeasurement();
 
 	        duration = measure();
+	        Log.d(TAG,"Duration: "+duration);
 	        
 	        measurement = convert(duration);
+	        time = System.currentTimeMillis();
 	        
 	        return measurement != null;
 	    }

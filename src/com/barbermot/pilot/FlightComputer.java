@@ -2,14 +2,21 @@ package com.barbermot.pilot;
 
 import java.io.PrintStream;
 
+import android.util.Log;
+
 import ioio.lib.api.IOIO;
 import ioio.lib.api.Uart;
 import ioio.lib.api.exception.ConnectionLostException;
 
 class FlightComputer {
+	
+	public final String TAG = "FlightComputer";
 
-	public FlightComputer(IOIO ioio, int ultraSoundPin, int aileronPin, int rudderPin, 
-			int throttlePin, int elevatorPin, int gainPin, int rxPin, int txPin) throws ConnectionLostException {
+	public FlightComputer(IOIO ioio, int ultraSoundPin, int aileronPinOut, int rudderPinOut, 
+			int throttlePinOut, int elevatorPinOut, int gainPinOut, int aileronPinIn, int rudderPinIn, 
+			int throttlePinIn, int elevatorPinIn, int gainPinIn, int txPin, PrintStream printer) 
+				throws ConnectionLostException {
+		
 		this.hoverConf = HOVER_CONF;
 		this.landingConf = LANDING_CONF;
 		this.gyroConf = GYRO_CONF;
@@ -22,19 +29,30 @@ class FlightComputer {
 		this.longitudinalSignal = new GyroSignal(ioio, 0);
 		this.lateralSignal = new GyroSignal(ioio, 0);
 		
+		this.ultraSoundSignal.registerListener(this.heightListener);
 		this.ultraSoundSignal.registerListener(this.autoThrottle);
+		
+		this.lateralSignal.registerListener(this.lateralListener);
 		this.lateralSignal.registerListener(this.autoAileron);
+		
+		this.longitudinalSignal.registerListener(this.longitudinalListener);
 		this.longitudinalSignal.registerListener(this.autoElevator);
 
-		this.ufo = new QuadCopter(ioio, aileronPin, rudderPin, throttlePin, elevatorPin, gainPin);
-		this.rc = new RemoteControl();
+		this.ufo = new QuadCopter(ioio, aileronPinOut, rudderPinOut, throttlePinOut, elevatorPinOut, gainPinOut);
+		this.rc = new RemoteControl(ioio, ufo, aileronPinIn, rudderPinIn, throttlePinIn, elevatorPinIn, gainPinIn);
 
 		this.minThrottle = MIN_THROTTLE;
 		this.maxThrottle = MAX_THROTTLE;
 
 		this.state = State.GROUND;
 		
-		this.printer = new PrintStream(ioio.openUart(rxPin, txPin, 9600, Uart.Parity.NONE, Uart.StopBits.ONE).getOutputStream());
+		this.printer = printer;
+		
+		time = System.currentTimeMillis();
+		lastTimeHeightSignal = time;
+		lastTimeAccelSignal = time;
+		lastTimeLog = time;
+
 	}
 
 	public void takeoff(double height) {
@@ -157,15 +175,18 @@ class FlightComputer {
 		printer.print(", a: ");
 		printer.println(currentAileron);
 		printer.println();
+		printer.flush();
 		lastTimeLog = time;
 	}
 
 	public void adjust() throws ConnectionLostException {
 		time = System.currentTimeMillis();
+		//Log.d(TAG, "Adjust: "+time);
 
 		// the following state transitions can origin in any state
 
 		// allow for manual inputs first
+		//Log.d(TAG, "Updating rc..");
 		rc.update();
 		if (rc.getControlMask() == RemoteControl.FULL_MANUAL) {
 			manualControl();
@@ -173,6 +194,8 @@ class FlightComputer {
 
 		// no height signal from ultra sound try descending
 		if (time - lastTimeHeightSignal > EMERGENCY_DELTA) {
+			//Log.d(TAG, "time: "+time);
+			//Log.d(TAG, "height time: "+lastTimeHeightSignal);
 			emergencyDescent();
 		}
 
@@ -218,14 +241,17 @@ class FlightComputer {
 		// sensors and log
 
 		if (time - lastTimeHeightSignal > MIN_TIME_ULTRA_SOUND) {
+			//Log.d(TAG, "Requesting ultrasound signal...");
 			ultraSoundSignal.signal();
 		}
 
 		if (time - lastTimeLog > MIN_TIME_STATUS_MESSAGE) {
+			//Log.d(TAG, "Logging...");
 			log();
 		}
 
 		if (time - lastTimeAccelSignal > MIN_TIME_GYRO) {
+			//Log.d(TAG, "Requesting gyro signal...");
 			longitudinalSignal.signal();
 			lateralSignal.signal();
 		}
@@ -284,6 +310,7 @@ class FlightComputer {
 	// Listener to update the height of the flight computer
 	private SignalListener heightListener = new SignalListener() {
 		public void update(double x, long time) {
+			//Log.d(TAG, "Height: "+x);
 			FlightComputer.this.height = x;
 			FlightComputer.this.lastTimeHeightSignal = time;
 		}

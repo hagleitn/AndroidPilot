@@ -3,8 +3,11 @@ package com.barbermot.pilot;
 import ioio.lib.api.DigitalOutput;
 import ioio.lib.api.IOIO;
 import ioio.lib.api.exception.ConnectionLostException;
+import android.util.Log;
 
 public class UltrasoundSignal extends Signal {
+	
+	public final String TAG = "UltrasoundSignal";
 	
 	public static final int MAX_RELIABLE = 367;
 	
@@ -15,7 +18,7 @@ public class UltrasoundSignal extends Signal {
 	@Override
 	protected void setupMeasurement() throws ConnectionLostException {
 		try {
-			ioio.openDigitalOutput(pin);
+			out = ioio.openDigitalOutput(pin);
 			out.write(false);
 			Thread.sleep(0, 2000);
 			out.write(true);
@@ -23,7 +26,9 @@ public class UltrasoundSignal extends Signal {
 			out.write(false);
 		} catch (InterruptedException e) {
 		} finally {
-			out.close();
+			if (out != null) {
+				out.close();
+			}
 		}
 	}
 	
@@ -32,6 +37,7 @@ public class UltrasoundSignal extends Signal {
 	    // The speed of sound is 340 m/s or 29 microseconds per centimeter.
 	    // The ping travels out and back, so to find the distance of the
 	    // object we take half of the distance traveled.
+		Log.d(TAG, "Microseconds "+microseconds);
 	    double value = microseconds / 29 / 2;
 	    return (value <= MAX_RELIABLE)? value : null;
 	}
