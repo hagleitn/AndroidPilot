@@ -8,7 +8,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 
+import android.util.Log;
+
 public class Tokenizer {
+	
+	public static String TAG = "Tokenizer";
 	
 	public Tokenizer(IOIO ioio, char delim, int rxPin, PrintStream printer) throws ConnectionLostException {
 		in = ioio.openUart(rxPin, IOIO.INVALID_PIN, 9600, Uart.Parity.NONE, Uart.StopBits.ONE).getInputStream();

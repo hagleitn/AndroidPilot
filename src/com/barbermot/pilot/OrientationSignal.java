@@ -1,13 +1,18 @@
 package com.barbermot.pilot;
 
+import java.util.Arrays;
+
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
 import ioio.lib.api.IOIO;
 import ioio.lib.api.exception.ConnectionLostException;
 
 public class OrientationSignal extends Signal {
+	
+	public static final String TAG = "OrientationSignal";
 	
 	public enum Type {YAW,ROLL,PITCH};
 
@@ -47,10 +52,16 @@ public class OrientationSignal extends Signal {
 	private class SensorAdapter implements SensorEventListener {
 		
 		public SensorAdapter(SensorManager manager) {
-			Sensor accelerometer = manager.getDefaultSensor(SensorManager.SENSOR_ACCELEROMETER);
-			Sensor magnetic = manager.getDefaultSensor(SensorManager.SENSOR_MAGNETIC_FIELD);
-			manager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
-			manager.registerListener(this, magnetic, SensorManager.SENSOR_DELAY_GAME);
+			Sensor accelerometer = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+			Sensor magnetic = manager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+			manager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+			manager.registerListener(this, magnetic, SensorManager.SENSOR_DELAY_UI);
+			
+			this.accel = new float[3];
+			this.magnetic = new float[3];
+			this.orientation = new float[3];
+			this.R = new float[16];
+			this.I = new float[16];
 		}
 
 		@Override
@@ -64,8 +75,10 @@ public class OrientationSignal extends Signal {
 			float[] data;
 			if (type == Sensor.TYPE_ACCELEROMETER) {
 				data = accel;
+				//Log.d(TAG, "Accel: "+Arrays.toString(data));
 			} else if (type == Sensor.TYPE_MAGNETIC_FIELD) {
 				data = magnetic;
+				//Log.d(TAG, "Magnetic: "+Arrays.toString(data));
 			} else {
 				// we should not be here.
 				return;
@@ -74,13 +87,15 @@ public class OrientationSignal extends Signal {
 				data[i] = event.values[i];
 			}
 
-			SensorManager.getRotationMatrix(R, null, accel, magnetic);
+			SensorManager.getRotationMatrix(R, I, accel, magnetic);
 			SensorManager.getOrientation(R, orientation);
 
 			final float rad2deg = (float)(180.0f/Math.PI);
 			yaw = orientation[0]*rad2deg;
 			pitch = orientation[1]*rad2deg;
 			roll = orientation[2]*rad2deg;
+			
+			//Log.d(TAG, "Orientation: "+yaw+", "+pitch+", "+roll);
 		}
 
 		private float yaw;
@@ -90,6 +105,7 @@ public class OrientationSignal extends Signal {
 		private float[] accel;
 		private float[] magnetic;
 		private float[] R;
+		private float[] I;
 	}
 	
 	private static SensorAdapter adapter;

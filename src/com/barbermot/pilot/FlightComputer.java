@@ -3,10 +3,8 @@ package com.barbermot.pilot;
 import java.io.PrintStream;
 
 import android.hardware.SensorManager;
-import android.util.Log;
 
 import ioio.lib.api.IOIO;
-import ioio.lib.api.Uart;
 import ioio.lib.api.exception.ConnectionLostException;
 
 class FlightComputer {
@@ -23,9 +21,15 @@ class FlightComputer {
 		this.orientationConf = ORIENTATION_CONF;
 
 		this.autoThrottle = new AutoControl(this.throttleControl);
-		this.autoAileron = new AutoControl(this.aileronControl);
-		this.autoElevator = new AutoControl(this.elevatorControl);
-		this.autoRudder = new AutoControl(this.rudderControl);
+		this.autoAileron = new AutoControl(this.aileronControl) { protected double computeError(double value) {
+			return FlightComputer.minRadianDistance(getGoal(), value);
+		} };
+		this.autoElevator = new AutoControl(this.elevatorControl) { protected double computeError(double value) {
+			return FlightComputer.minRadianDistance(getGoal(), value);		
+		} };
+		this.autoRudder = new AutoControl(this.rudderControl) { protected double computeError(double value) {
+			return FlightComputer.minRadianDistance(getGoal(), value);		
+		} };
 
 		this.ultraSoundSignal = new UltrasoundSignal(ioio, ultraSoundPin);
 		this.longitudinalSignal = new OrientationSignal(ioio, manager, OrientationSignal.Type.PITCH);
@@ -46,6 +50,8 @@ class FlightComputer {
 
 		this.ufo = new QuadCopter(ioio, aileronPinOut, rudderPinOut, throttlePinOut, elevatorPinOut, gainPinOut);
 		this.rc = new RemoteControl(ioio, ufo, aileronPinIn, rudderPinIn, throttlePinIn, elevatorPinIn, gainPinIn);
+		
+		this.rc.setControlMask((char) ~RemoteControl.THROTTLE_MASK);
 
 		this.minThrottle = MIN_THROTTLE;
 		this.maxThrottle = MAX_THROTTLE;
@@ -59,6 +65,12 @@ class FlightComputer {
 		lastTimeOrientationSignal = time;
 		lastTimeLog = time;
 
+	}
+	
+	public static double minRadianDistance(double goal, double value) {
+		double left = goal - value;
+		double right = goal < value ?  goal - (value - 2*Math.PI) : goal - (value + 2*Math.PI);
+		return Math.abs(left) < Math.abs(right) ? left : right;
 	}
 
 	public void takeoff(double height) {
@@ -155,6 +167,7 @@ class FlightComputer {
 
 		autoElevator.setConfiguration(orientationConf);
 		autoAileron.setConfiguration(orientationConf);
+		autoRudder.setConfiguration(orientationConf);
 		autoElevator.setGoal(0);
 		autoAileron.setGoal(0);
 		autoRudder.setGoal(0);
@@ -170,6 +183,7 @@ class FlightComputer {
 		printer.print(time);
 		printer.print(", rc: ");
 		printer.println((byte)rc.getControlMask());
+		printer.flush();
 		printer.print("h: ");
 		printer.print(height);
 		printer.print(", dy: ");
@@ -178,6 +192,7 @@ class FlightComputer {
 		printer.print(lateralDisplacement);
 		printer.print(", dz: ");
 		printer.println(heading);
+		printer.flush();
 		printer.print("t: ");
 		printer.print(currentThrottle);
 		printer.print(", e: ");

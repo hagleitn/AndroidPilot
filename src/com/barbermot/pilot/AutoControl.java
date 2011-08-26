@@ -15,7 +15,7 @@ public class AutoControl implements SignalListener {
 			if (isFirst) {
 				isFirst = false;
 				lastTime = time;
-				lastError = goal - value;
+				lastError = computeError(value);
 				cummulativeError = 0;
 				return;
 			}
@@ -30,7 +30,7 @@ public class AutoControl implements SignalListener {
 				return;
 			}
 
-			double error = goal - value;
+			double error = computeError(value);
 			double errorDelta = error - lastError;
 
 			// simple adjustment proportional to the error
@@ -53,6 +53,10 @@ public class AutoControl implements SignalListener {
 
 			control.adjust(pTotal + iTotal + dTotal);
 		}
+	}
+	
+	protected double computeError(double value) {
+		return goal - value;
 	}
 
 	public void setConfiguration(double[] conf) {

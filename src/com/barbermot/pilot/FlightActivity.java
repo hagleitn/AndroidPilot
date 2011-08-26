@@ -11,7 +11,6 @@ import android.content.Context;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.Printer;
 
 public class FlightActivity extends AbstractIOIOActivity {
 	
