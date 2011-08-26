@@ -2,6 +2,7 @@ package com.barbermot.pilot;
 
 import java.io.PrintStream;
 
+import android.hardware.SensorManager;
 import android.util.Log;
 
 import ioio.lib.api.IOIO;
@@ -14,20 +15,22 @@ class FlightComputer {
 
 	public FlightComputer(IOIO ioio, int ultraSoundPin, int aileronPinOut, int rudderPinOut, 
 			int throttlePinOut, int elevatorPinOut, int gainPinOut, int aileronPinIn, int rudderPinIn, 
-			int throttlePinIn, int elevatorPinIn, int gainPinIn, int txPin, PrintStream printer) 
+			int throttlePinIn, int elevatorPinIn, int gainPinIn, int txPin, PrintStream printer, SensorManager manager) 
 				throws ConnectionLostException {
 		
 		this.hoverConf = HOVER_CONF;
 		this.landingConf = LANDING_CONF;
-		this.gyroConf = GYRO_CONF;
+		this.orientationConf = ORIENTATION_CONF;
 
 		this.autoThrottle = new AutoControl(this.throttleControl);
 		this.autoAileron = new AutoControl(this.aileronControl);
 		this.autoElevator = new AutoControl(this.elevatorControl);
+		this.autoRudder = new AutoControl(this.rudderControl);
 
 		this.ultraSoundSignal = new UltrasoundSignal(ioio, ultraSoundPin);
-		this.longitudinalSignal = new GyroSignal(ioio, 0);
-		this.lateralSignal = new GyroSignal(ioio, 0);
+		this.longitudinalSignal = new OrientationSignal(ioio, manager, OrientationSignal.Type.PITCH);
+		this.lateralSignal = new OrientationSignal(ioio, manager, OrientationSignal.Type.ROLL);
+		this.compassSignal = new OrientationSignal(ioio, manager, OrientationSignal.Type.YAW);
 		
 		this.ultraSoundSignal.registerListener(this.heightListener);
 		this.ultraSoundSignal.registerListener(this.autoThrottle);
@@ -37,6 +40,9 @@ class FlightComputer {
 		
 		this.longitudinalSignal.registerListener(this.longitudinalListener);
 		this.longitudinalSignal.registerListener(this.autoElevator);
+		
+		this.compassSignal.registerListener(this.compassListener);
+		this.compassSignal.registerListener(this.autoRudder);
 
 		this.ufo = new QuadCopter(ioio, aileronPinOut, rudderPinOut, throttlePinOut, elevatorPinOut, gainPinOut);
 		this.rc = new RemoteControl(ioio, ufo, aileronPinIn, rudderPinIn, throttlePinIn, elevatorPinIn, gainPinIn);
@@ -50,7 +56,7 @@ class FlightComputer {
 		
 		time = System.currentTimeMillis();
 		lastTimeHeightSignal = time;
-		lastTimeAccelSignal = time;
+		lastTimeOrientationSignal = time;
 		lastTimeLog = time;
 
 	}
@@ -147,12 +153,14 @@ class FlightComputer {
 		}
 		rc.setControlMask(controlMask);
 
-		autoElevator.setConfiguration(gyroConf);
-		autoAileron.setConfiguration(gyroConf);
-		autoElevator.setGoal(zeroLongitudinalForce);
-		autoAileron.setGoal(zeroLateralForce);
+		autoElevator.setConfiguration(orientationConf);
+		autoAileron.setConfiguration(orientationConf);
+		autoElevator.setGoal(0);
+		autoAileron.setGoal(0);
+		autoRudder.setGoal(0);
 		autoElevator.engage(engage);
 		autoAileron.engage(engage);
+		autoRudder.engage(engage);
 	}
 
 	private void log() {
@@ -163,17 +171,21 @@ class FlightComputer {
 		printer.print(", rc: ");
 		printer.println((byte)rc.getControlMask());
 		printer.print("h: ");
-		printer.print(height/*-zeroHeight*/);
-		printer.print(", y'': ");
-		printer.print(longitudinalForce-zeroLongitudinalForce);
-		printer.print(", x'': ");
-		printer.println(lateralForce-zeroLateralForce);
+		printer.print(height);
+		printer.print(", dy: ");
+		printer.print(longitudinalDisplacement);
+		printer.print(", dx: ");
+		printer.print(lateralDisplacement);
+		printer.print(", dz: ");
+		printer.println(heading);
 		printer.print("t: ");
 		printer.print(currentThrottle);
 		printer.print(", e: ");
 		printer.print(currentElevator);
 		printer.print(", a: ");
-		printer.println(currentAileron);
+		printer.print(currentAileron);
+		printer.print(", r: ");
+		printer.println(currentRudder);
 		printer.println();
 		printer.flush();
 		lastTimeLog = time;
@@ -181,12 +193,10 @@ class FlightComputer {
 
 	public void adjust() throws ConnectionLostException {
 		time = System.currentTimeMillis();
-		//Log.d(TAG, "Adjust: "+time);
 
 		// the following state transitions can origin in any state
 
 		// allow for manual inputs first
-		//Log.d(TAG, "Updating rc..");
 		rc.update();
 		if (rc.getControlMask() == RemoteControl.FULL_MANUAL) {
 			manualControl();
@@ -194,8 +204,6 @@ class FlightComputer {
 
 		// no height signal from ultra sound try descending
 		if (time - lastTimeHeightSignal > EMERGENCY_DELTA) {
-			//Log.d(TAG, "time: "+time);
-			//Log.d(TAG, "height time: "+lastTimeHeightSignal);
 			emergencyDescent();
 		}
 
@@ -205,8 +213,6 @@ class FlightComputer {
 		case GROUND:
 			// calibration
 			zeroHeight = height;
-			zeroLongitudinalForce = longitudinalForce;
-			zeroLateralForce = lateralForce;
 			break;
 		case HOVER:
 			// nothing
@@ -241,19 +247,17 @@ class FlightComputer {
 		// sensors and log
 
 		if (time - lastTimeHeightSignal > MIN_TIME_ULTRA_SOUND) {
-			//Log.d(TAG, "Requesting ultrasound signal...");
 			ultraSoundSignal.signal();
 		}
 
 		if (time - lastTimeLog > MIN_TIME_STATUS_MESSAGE) {
-			//Log.d(TAG, "Logging...");
 			log();
 		}
 
-		if (time - lastTimeAccelSignal > MIN_TIME_GYRO) {
-			//Log.d(TAG, "Requesting gyro signal...");
+		if (time - lastTimeOrientationSignal > MIN_TIME_ORIENTATION) {
 			longitudinalSignal.signal();
 			lateralSignal.signal();
+			compassSignal.signal();
 		}
 	}
 
@@ -266,7 +270,7 @@ class FlightComputer {
 	}
 
 	public void setStabilizerConfiguration(double[] conf) {
-		gyroConf = conf;
+		orientationConf = conf;
 	}
 
 	public void setMinThrottle(int min) {
@@ -306,6 +310,13 @@ class FlightComputer {
 		}
 	};
 
+	// adjusts output from PID controller for rudder setting
+	private ControlListener rudderControl = new ControlListener() {
+		public void adjust(double x) throws ConnectionLostException {
+			currentRudder = (int)limit(x, MIN_TILT, MAX_TILT);
+			FlightComputer.this.ufo.rudder(currentRudder);
+		}
+	};
 
 	// Listener to update the height of the flight computer
 	private SignalListener heightListener = new SignalListener() {
@@ -319,8 +330,8 @@ class FlightComputer {
 	// Listener to update the lateral force on the flight computer	    
 	private SignalListener lateralListener = new SignalListener() {
 		public void update(double x, long time) {
-			FlightComputer.this.lateralForce = x;
-			FlightComputer.this.lastTimeAccelSignal = time;
+			FlightComputer.this.lateralDisplacement = x;
+			FlightComputer.this.lastTimeOrientationSignal = time;
 		}
 	};
 
@@ -328,15 +339,23 @@ class FlightComputer {
 	// Listener to update the longitudinal force on the flight computer
 	private SignalListener longitudinalListener = new SignalListener() {
 		public void update(double x, long time) {
-			FlightComputer.this.longitudinalForce = x;
-			FlightComputer.this.lastTimeAccelSignal = time;
+			FlightComputer.this.longitudinalDisplacement = x;
+			FlightComputer.this.lastTimeOrientationSignal = time;
+		}
+	};
+	
+	// Listener to update the compass heading of the flight computer
+	private SignalListener compassListener = new SignalListener() {
+		public void update(double x, long time) {
+			FlightComputer.this.heading = x;
+			FlightComputer.this.lastTimeOrientationSignal = time;
 		}
 	};
 	
 	// values for the PID controller
-	private static final double[] HOVER_CONF   	= { 0.57, 0.0007,  350, -6000,  40000 };
-	private static final double[] LANDING_CONF 	= { 0, 0.001, 600,   -10000, 10000 };
-	private static final double[] GYRO_CONF		= { 0.5, 0.005,   200, -1000,   1000 };
+	private static final double[] HOVER_CONF   		= { 0.57, 0.0007,  350, -6000,  40000 };
+	private static final double[] LANDING_CONF 		= { 0, 0.001, 600,   -10000, 10000 };
+	private static final double[] ORIENTATION_CONF	= { 0.5, 0.005,   200, -1000,   1000 };
 
 	// Flight computer states
 	private enum State {GROUND, HOVER, LANDING, FAILED, EMERGENCY_LANDING, MANUAL_CONTROL, ENGAGING_AUTO_CONTROL};
@@ -345,7 +364,7 @@ class FlightComputer {
 	private static final int MIN_TIME_ULTRA_SOUND = 100;
 
 	// delay between readings of the gyro
-	private static final int MIN_TIME_GYRO = 50;
+	private static final int MIN_TIME_ORIENTATION = 150;
 
 	// delay between status messages
 	private static final int MIN_TIME_STATUS_MESSAGE = 5000;
@@ -369,17 +388,19 @@ class FlightComputer {
 	private RemoteControl rc; // RC signal (from RC controller)
 
 	private UltrasoundSignal ultraSoundSignal; // distance pointing down
-	private GyroSignal longitudinalSignal; // accel on y axis
-	private GyroSignal lateralSignal; // accel on x axis
+	private OrientationSignal longitudinalSignal; // displacement on y axis
+	private OrientationSignal lateralSignal; // displacement on x axis
+	private OrientationSignal compassSignal;
 
 	private AutoControl autoThrottle; // autopilot for throttle
 	private AutoControl autoElevator; // autopilot for elevator
 	private AutoControl autoAileron; // autopilot for aileron
+	private AutoControl autoRudder; // autopilot for rudder
 
 	// values for the PID controller
 	private double[] hoverConf;
 	private double[] landingConf;
-	private double[] gyroConf;
+	private double[] orientationConf;
 	
 	// Log writer
 	private PrintStream printer;
@@ -393,18 +414,17 @@ class FlightComputer {
 	private double height;
 	private double zeroHeight;
 
-	private double longitudinalForce;
-	private double zeroLongitudinalForce;
-
-	private double lateralForce;
-	private double zeroLateralForce;
+	private double longitudinalDisplacement;
+	private double lateralDisplacement;
+	private double heading;
 
 	private long time;
 	private long lastTimeHeightSignal;
-	private long lastTimeAccelSignal;
+	private long lastTimeOrientationSignal;
 	private long lastTimeLog;
 
 	private int currentThrottle;
 	private int currentElevator;
 	private int currentAileron;
+	private int currentRudder;
 }

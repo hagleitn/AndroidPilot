@@ -7,6 +7,8 @@ import ioio.lib.api.IOIO;
 import ioio.lib.api.Uart;
 import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.util.AbstractIOIOActivity;
+import android.content.Context;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Printer;
@@ -48,11 +50,15 @@ public class FlightActivity extends AbstractIOIOActivity {
 
 		@Override
 		protected void setup() throws ConnectionLostException {
+			SensorManager manager = (SensorManager)FlightActivity.this.getSystemService(Context.SENSOR_SERVICE);
 			printer = new PrintStream(ioio_.openUart(IOIO.INVALID_PIN, txPin, 9600, 
 					Uart.Parity.NONE, Uart.StopBits.ONE).getOutputStream());
-			computer = new FlightComputer(ioio_, ultraSoundPin, aileronPinOut, rudderPinOut, 
-					throttlePinOut, elevatorPinOut, gainPinOut, aileronPinIn, rudderPinIn,
-					throttlePinIn, elevatorPinIn, gainPinIn, txPin, printer);
+			computer = new FlightComputer(ioio_, 
+					ultraSoundPin, aileronPinOut, rudderPinOut, 
+					throttlePinOut, elevatorPinOut, gainPinOut, 
+					aileronPinIn, rudderPinIn,throttlePinIn, 
+					elevatorPinIn, gainPinIn, txPin, printer, 
+					manager);
 			controller = new SerialController(ioio_, computer, ';', rxPin, printer);
 			Log.d(TAG, "Setup complete.");
 		}
