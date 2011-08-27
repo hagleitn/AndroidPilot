@@ -1,11 +1,17 @@
 package com.barbermot.pilot;
 
 import ioio.lib.api.IOIO;
+import ioio.lib.api.PulseInput;
+import ioio.lib.api.PulseInput.PulseMode;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.EnumMap;
 
+import android.util.Log;
+
 public class RemoteControl {
+	
+	public final static String TAG = "RemoteControl";
     
     public static final char FULL_MANUAL 	= 0xff;
     public static final char ELEVATOR_MASK	= 0x01;
@@ -24,10 +30,22 @@ public class RemoteControl {
     	pins.put(QuadCopter.Direction.LONGITUDINAL, elevatorPin);
     	this.gainPin = gainPin;
     	this.ufo = ufo;
+    	this.ioio = ioio;
     }
     
-    private int pulseIn(int pin, boolean val, int timeout) {
-    	return 0;
+    private int pulseIn(int pin, boolean val, int timeout) throws ConnectionLostException {
+    	PulseInput pulse = ioio.openPulseInput(pin, val?PulseMode.POSITIVE:PulseMode.NEGATIVE);
+    	int pw;
+    	while (true) {
+    		try {
+    			Log.d(TAG,"entering pulse in "+ pin);
+    			pw = (int) (pulse.getDuration()*1000000);
+    			Log.d(TAG,"got pw: "+pw);
+    			break;
+    		} catch (InterruptedException e) {}
+    	}
+    	pulse.close();
+    	return pw;
     }
     
     public void update() throws ConnectionLostException {
@@ -57,7 +75,7 @@ public class RemoteControl {
     	return controlMask; 
     }
     
-    public boolean isEngaged() {
+    public boolean isEngaged() throws ConnectionLostException {
         int value = pulseIn(pins.get(QuadCopter.Direction.VERTICAL),true,TIMEOUT);
         if (armed) {
             int vertical = ufo.readRaw(QuadCopter.Direction.VERTICAL);
@@ -78,4 +96,5 @@ public class RemoteControl {
     private int gainPin;
     private boolean armed;
     private QuadCopter ufo;
+    private IOIO ioio;
 }

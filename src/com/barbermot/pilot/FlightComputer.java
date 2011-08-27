@@ -3,6 +3,7 @@ package com.barbermot.pilot;
 import java.io.PrintStream;
 
 import android.hardware.SensorManager;
+import android.util.Log;
 
 import ioio.lib.api.IOIO;
 import ioio.lib.api.exception.ConnectionLostException;
@@ -153,7 +154,7 @@ class FlightComputer {
 	}
 
 	public void stabilize(boolean engage) {
-		char mask = RemoteControl.AILERON_MASK | RemoteControl.ELEVATOR_MASK;
+		char mask = RemoteControl.AILERON_MASK | RemoteControl.ELEVATOR_MASK | RemoteControl.RUDDER_MASK;
 		char controlMask = rc.getControlMask();
 
 		if (engage) {
@@ -190,6 +191,7 @@ class FlightComputer {
 		// the following state transitions can origin in any state
 
 		// allow for manual inputs first
+		Log.d(TAG,"Rc...");
 		rc.update();
 		if (rc.getControlMask() == RemoteControl.FULL_MANUAL) {
 			manualControl();
@@ -240,14 +242,17 @@ class FlightComputer {
 		// sensors and log
 
 		if (time - lastTimeHeightSignal > MIN_TIME_ULTRA_SOUND) {
+			Log.d(TAG,"Ultrasound");
 			ultraSoundSignal.signal();
 		}
 
 		if (time - lastTimeLog > MIN_TIME_STATUS_MESSAGE) {
+			Log.d(TAG,"logging");
 			log();
 		}
 
 		if (time - lastTimeOrientationSignal > MIN_TIME_ORIENTATION) {
+			Log.d(TAG,"compass");
 			longitudinalSignal.signal();
 			lateralSignal.signal();
 			compassSignal.signal();
@@ -348,7 +353,7 @@ class FlightComputer {
 	// values for the PID controller
 	private static final double[] HOVER_CONF   		= { 0.57, 0.0007,  350, -6000,  40000 };
 	private static final double[] LANDING_CONF 		= { 0, 0.001, 600,   -10000, 10000 };
-	private static final double[] ORIENTATION_CONF	= { 0.5, 0.005,   200, -1000,   1000 };
+	private static final double[] ORIENTATION_CONF	= { 0.5, 0.0007,   200, -6000,   40000 };
 
 	// Flight computer states
 	private enum State {GROUND, HOVER, LANDING, FAILED, EMERGENCY_LANDING, MANUAL_CONTROL, ENGAGING_AUTO_CONTROL};

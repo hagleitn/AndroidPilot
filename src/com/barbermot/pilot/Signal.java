@@ -1,7 +1,8 @@
 package com.barbermot.pilot;
 
-import ioio.lib.api.DigitalInput;
 import ioio.lib.api.IOIO;
+import ioio.lib.api.PulseInput;
+import ioio.lib.api.PulseInput.PulseMode;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.ArrayList;
@@ -35,17 +36,16 @@ public class Signal {
 	    }
 	    
 	    protected long measure() throws ConnectionLostException {
-	    	pulse = ioio.openDigitalInput(pin);
+	    	pulse = ioio.openPulseInput(pin, PulseMode.POSITIVE);
+	    	long measurement = 0;
 	    	while (true) {
 	    		try {
-	    			pulse.waitForValue(false);
-	    			pulse.waitForValue(true);
-	    			long nano = System.nanoTime();
-	    			pulse.waitForValue(false);
-	    			pulse.close();
-	    			return (System.nanoTime() - nano)/1000;
-	    		} catch(InterruptedException e) {}
+	    			measurement = (long) (pulse.getDuration()*1000000);
+	    			break;
+	    		} catch (InterruptedException e) { /* retry */ }
 	    	}
+	    	pulse.close();
+	    	return measurement;
 	    }
 	    
 	    protected Double convert(long x) {
@@ -58,7 +58,7 @@ public class Signal {
 	        setupMeasurement();
 
 	        duration = measure();
-	        Log.d(TAG,"Duration: "+duration);
+	        // Log.d(TAG,"Duration: "+duration);
 	        
 	        measurement = convert(duration);
 	        time = System.currentTimeMillis();
@@ -70,6 +70,6 @@ public class Signal {
 	    protected IOIO ioio;
 	    private long time;
 	    private Double measurement;
-	    protected DigitalInput pulse;
+	    protected PulseInput pulse;
 	    private List<SignalListener> listeners;	    
 }

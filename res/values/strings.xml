@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, Flight!</string>
     <string name="app_name">QuadCopter</string>
+    <string name="flight_service_running">Android Pilot is running</string>
+    <string name="flight_service_stopped">Android Pilot has stopped.</string>
 </resources>
