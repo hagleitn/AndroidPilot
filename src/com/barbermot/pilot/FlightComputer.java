@@ -177,32 +177,9 @@ class FlightComputer {
 	}
 
 	private void log() {
-		printer.print("st: ");
-		printer.print(state);
-		printer.print(", ms: ");
-		printer.print(time);
-		printer.print(", rc: ");
-		printer.println((byte)rc.getControlMask());
-		printer.flush();
-		printer.print("h: ");
-		printer.print(height);
-		printer.print(", dy: ");
-		printer.print(longitudinalDisplacement);
-		printer.print(", dx: ");
-		printer.print(lateralDisplacement);
-		printer.print(", dz: ");
-		printer.println(heading);
-		printer.flush();
-		printer.print("t: ");
-		printer.print(currentThrottle);
-		printer.print(", e: ");
-		printer.print(currentElevator);
-		printer.print(", a: ");
-		printer.print(currentAileron);
-		printer.print(", r: ");
-		printer.println(currentRudder);
-		printer.println();
-		printer.flush();
+		printer.printf("st: %s\tms: %d\trc: %h\nh: %f\tdy: %f\tdx: %f\tdz: %f\nt: %d\te: %d\ta: %d\tr: %d\n",
+				state,time,(byte)rc.getControlMask(),height,longitudinalDisplacement,lateralDisplacement,
+				heading,currentThrottle,currentElevator,currentAileron,currentRudder);
 		lastTimeLog = time;
 	}
 
