@@ -11,6 +11,8 @@ public class UltrasoundSignal extends Signal {
 	
 	public static final int MAX_RELIABLE = 367;
 	
+	private DigitalOutput out;
+	
 	public UltrasoundSignal(IOIO ioio,int pin) throws ConnectionLostException {
 		super(ioio,pin);
 	}
@@ -41,6 +43,4 @@ public class UltrasoundSignal extends Signal {
 	    double value = microseconds / 29 / 2;
 	    return (value <= MAX_RELIABLE)? value : null;
 	}
-
-	private DigitalOutput out;
 }

@@ -14,6 +14,12 @@ public class Tokenizer {
 	
 	public static String TAG = "Tokenizer";
 	
+	private PrintStream printer;
+	private char delim;
+	private boolean startToken;
+	private InputStream in;
+	private StringBuffer buffer;
+	
 	public Tokenizer(IOIO ioio, char delim, int rxPin, PrintStream printer) throws ConnectionLostException {
 		in = ioio.openUart(rxPin, IOIO.INVALID_PIN, 9600, Uart.Parity.NONE, Uart.StopBits.ONE).getInputStream();
 		this.delim = delim;
@@ -47,11 +53,5 @@ public class Tokenizer {
 	    }
 	    
 	    return result;
-	}
-	
-	private PrintStream printer;
-	private char delim;
-	private boolean startToken;
-	private InputStream in;
-	private StringBuffer buffer;
+	}	
 }

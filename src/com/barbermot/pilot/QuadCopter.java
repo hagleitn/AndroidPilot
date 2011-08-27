@@ -13,6 +13,15 @@ public class QuadCopter {
 	public static final int MIN_SPEED = -100;
 	public static final int STOP_SPEED = 0;
 	public static final int MAX_SPEED = 100;
+	
+	private static final int MIN_SERVO = 1050; // measured min activation
+	private static final int MAX_SERVO = 1950; // measured max response
+
+	private EnumMap<Direction,Servo> servos;
+	private Servo gain;
+
+	private EnumMap<Direction,Integer> pins;
+	private int gainPin;
 
 	/*
 		Color map for GU-344 gyroscope pins (available with GAUI 330X)
@@ -107,14 +116,5 @@ public class QuadCopter {
 	
 	void writeRaw(Direction d, int ms) throws ConnectionLostException {
 		servos.get(d).writeRaw(ms);
-	}
-	
-	private static final int MIN_SERVO = 1050; // measured min activation
-	private static final int MAX_SERVO = 1950; // measured max response
-
-	private EnumMap<Direction,Servo> servos;
-	private Servo gain;
-
-	private EnumMap<Direction,Integer> pins;
-	int gainPin;
+	}	
 }

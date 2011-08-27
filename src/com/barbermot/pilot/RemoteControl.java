@@ -20,6 +20,16 @@ public class RemoteControl {
     public static final char RUDDER_MASK 	= 0x08;
     public static final int  TIMEOUT 		= 20000;
     
+    private static final int THROTTLE_MIN 	= 1300; // min raw value from pulse in to take over
+    private static final int THROTTLE_DELTA = 200;  // if manual throttle comes that close to current setting take over
+    
+    private char controlMask; // all bits set means manual control for the particular servo
+    private EnumMap<QuadCopter.Direction,Integer> pins;
+    private int gainPin;
+    private boolean armed;
+    private QuadCopter ufo;
+    private IOIO ioio;
+    
     public RemoteControl(IOIO ioio, QuadCopter ufo, int aileronPin, int rudderPin, 
     		int throttlePin, int elevatorPin, int gainPin) {
     	controlMask = FULL_MANUAL;
@@ -38,9 +48,7 @@ public class RemoteControl {
     	int pw;
     	while (true) {
     		try {
-    			Log.d(TAG,"entering pulse in "+ pin);
     			pw = (int) (pulse.getDuration()*1000000);
-    			Log.d(TAG,"got pw: "+pw);
     			break;
     		} catch (InterruptedException e) {}
     	}
@@ -86,15 +94,5 @@ public class RemoteControl {
             }
             return false;
         }
-    }
-    
-    private static final int THROTTLE_MIN 	= 1300; // min raw value from pulse in to take over
-    private static final int THROTTLE_DELTA = 200;  // if manual throttle comes that close to current setting take over
-    
-    private char controlMask; // all bits set means manual control for the particular servo
-    private EnumMap<QuadCopter.Direction,Integer> pins;
-    private int gainPin;
-    private boolean armed;
-    private QuadCopter ufo;
-    private IOIO ioio;
+    }    
 }

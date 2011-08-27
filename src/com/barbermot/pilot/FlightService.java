@@ -48,7 +48,7 @@ public class FlightService extends Service {
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, FlightActivity.class), 0);
 
-        notification.setLatestEventInfo(this, getText(R.string.flight_service_running),
+        notification.setLatestEventInfo(this, getText(R.string.flight_service_disable_message),
                        text, contentIntent);
 
         startForeground(R.string.flight_service_running, notification);

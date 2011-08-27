@@ -11,6 +11,82 @@ import ioio.lib.api.exception.ConnectionLostException;
 class FlightComputer {
 	
 	public final String TAG = "FlightComputer";
+	
+	// values for the PID controller
+	private static final double[] HOVER_CONF   		= { 0.57, 0.0007,  350, -6000,  40000 };
+	private static final double[] LANDING_CONF 		= { 0, 0.001, 600,   -10000, 10000 };
+	private static final double[] ORIENTATION_CONF	= { 0.5, 0.0007,   200, -6000,   40000 };
+
+	// Flight computer states
+	private enum State {GROUND, HOVER, LANDING, FAILED, EMERGENCY_LANDING, MANUAL_CONTROL, ENGAGING_AUTO_CONTROL};
+
+	// delay between readings of the ultra sound module
+	private static final int MIN_TIME_ULTRA_SOUND = 100;
+
+	// delay between readings of the gyro
+	private static final int MIN_TIME_ORIENTATION = 150;
+
+	// delay between status messages
+	private static final int MIN_TIME_STATUS_MESSAGE = 5000;
+
+	// initial min/max throttle setting
+	private static final int MIN_THROTTLE = QuadCopter.MIN_SPEED+(QuadCopter.MAX_SPEED-QuadCopter.MIN_SPEED)/3;
+	private static final int MAX_THROTTLE = QuadCopter.MAX_SPEED-(QuadCopter.MAX_SPEED-QuadCopter.MIN_SPEED)/8;
+
+	// min/max for the automatic control of the aileron and elevator
+	private static final int MIN_TILT = QuadCopter.MIN_SPEED/2;
+	private static final int MAX_TILT = QuadCopter.MAX_SPEED/2;
+
+	// landings will cut the power once this height is reached
+	private static final int THROTTLE_OFF_HEIGHT = 10;
+
+	// throttle setting for when we don't know the height anymore
+	private static final int EMERGENCY_DESCENT = QuadCopter.STOP_SPEED-(QuadCopter.MAX_SPEED-QuadCopter.MIN_SPEED)/20;
+	private static final int EMERGENCY_DELTA = 1000;
+
+	private QuadCopter ufo; // quad copter
+	private RemoteControl rc; // RC signal (from RC controller)
+
+	private UltrasoundSignal ultraSoundSignal; // distance pointing down
+	private OrientationSignal longitudinalSignal; // displacement on y axis
+	private OrientationSignal lateralSignal; // displacement on x axis
+	private OrientationSignal compassSignal;
+
+	private AutoControl autoThrottle; // autopilot for throttle
+	private AutoControl autoElevator; // autopilot for elevator
+	private AutoControl autoAileron; // autopilot for aileron
+	private AutoControl autoRudder; // autopilot for rudder
+
+	// values for the PID controller
+	private double[] hoverConf;
+	private double[] landingConf;
+	private double[] orientationConf;
+	
+	// Log writer
+	private PrintStream printer;
+
+	// min/max for the automatic control of the throttle
+	private int minThrottle;
+	private int maxThrottle;
+
+	private State state;
+
+	private double height;
+	private double zeroHeight;
+
+	private double longitudinalDisplacement;
+	private double lateralDisplacement;
+	private double heading;
+
+	private long time;
+	private long lastTimeHeightSignal;
+	private long lastTimeOrientationSignal;
+	private long lastTimeLog;
+
+	private int currentThrottle;
+	private int currentElevator;
+	private int currentAileron;
+	private int currentRudder;
 
 	public FlightComputer(IOIO ioio, int ultraSoundPin, int aileronPinOut, int rudderPinOut, 
 			int throttlePinOut, int elevatorPinOut, int gainPinOut, int aileronPinIn, int rudderPinIn, 
@@ -191,7 +267,6 @@ class FlightComputer {
 		// the following state transitions can origin in any state
 
 		// allow for manual inputs first
-		Log.d(TAG,"Rc...");
 		rc.update();
 		if (rc.getControlMask() == RemoteControl.FULL_MANUAL) {
 			manualControl();
@@ -242,17 +317,14 @@ class FlightComputer {
 		// sensors and log
 
 		if (time - lastTimeHeightSignal > MIN_TIME_ULTRA_SOUND) {
-			Log.d(TAG,"Ultrasound");
 			ultraSoundSignal.signal();
 		}
 
 		if (time - lastTimeLog > MIN_TIME_STATUS_MESSAGE) {
-			Log.d(TAG,"logging");
 			log();
 		}
 
 		if (time - lastTimeOrientationSignal > MIN_TIME_ORIENTATION) {
-			Log.d(TAG,"compass");
 			longitudinalSignal.signal();
 			lateralSignal.signal();
 			compassSignal.signal();
@@ -349,80 +421,4 @@ class FlightComputer {
 			FlightComputer.this.lastTimeOrientationSignal = time;
 		}
 	};
-	
-	// values for the PID controller
-	private static final double[] HOVER_CONF   		= { 0.57, 0.0007,  350, -6000,  40000 };
-	private static final double[] LANDING_CONF 		= { 0, 0.001, 600,   -10000, 10000 };
-	private static final double[] ORIENTATION_CONF	= { 0.5, 0.0007,   200, -6000,   40000 };
-
-	// Flight computer states
-	private enum State {GROUND, HOVER, LANDING, FAILED, EMERGENCY_LANDING, MANUAL_CONTROL, ENGAGING_AUTO_CONTROL};
-
-	// delay between readings of the ultra sound module
-	private static final int MIN_TIME_ULTRA_SOUND = 100;
-
-	// delay between readings of the gyro
-	private static final int MIN_TIME_ORIENTATION = 150;
-
-	// delay between status messages
-	private static final int MIN_TIME_STATUS_MESSAGE = 5000;
-
-	// initial min/max throttle setting
-	private static final int MIN_THROTTLE = QuadCopter.MIN_SPEED+(QuadCopter.MAX_SPEED-QuadCopter.MIN_SPEED)/3;
-	private static final int MAX_THROTTLE = QuadCopter.MAX_SPEED-(QuadCopter.MAX_SPEED-QuadCopter.MIN_SPEED)/8;
-
-	// min/max for the automatic control of the aileron and elevator
-	private static final int MIN_TILT = QuadCopter.MIN_SPEED/2;
-	private static final int MAX_TILT = QuadCopter.MAX_SPEED/2;
-
-	// landings will cut the power once this height is reached
-	private static final int THROTTLE_OFF_HEIGHT = 10;
-
-	// throttle setting for when we don't know the height anymore
-	private static final int EMERGENCY_DESCENT = QuadCopter.STOP_SPEED-(QuadCopter.MAX_SPEED-QuadCopter.MIN_SPEED)/20;
-	private static final int EMERGENCY_DELTA = 1000;
-
-	private QuadCopter ufo; // quad copter
-	private RemoteControl rc; // RC signal (from RC controller)
-
-	private UltrasoundSignal ultraSoundSignal; // distance pointing down
-	private OrientationSignal longitudinalSignal; // displacement on y axis
-	private OrientationSignal lateralSignal; // displacement on x axis
-	private OrientationSignal compassSignal;
-
-	private AutoControl autoThrottle; // autopilot for throttle
-	private AutoControl autoElevator; // autopilot for elevator
-	private AutoControl autoAileron; // autopilot for aileron
-	private AutoControl autoRudder; // autopilot for rudder
-
-	// values for the PID controller
-	private double[] hoverConf;
-	private double[] landingConf;
-	private double[] orientationConf;
-	
-	// Log writer
-	private PrintStream printer;
-
-	// min/max for the automatic control of the throttle
-	private int minThrottle;
-	private int maxThrottle;
-
-	private State state;
-
-	private double height;
-	private double zeroHeight;
-
-	private double longitudinalDisplacement;
-	private double lateralDisplacement;
-	private double heading;
-
-	private long time;
-	private long lastTimeHeightSignal;
-	private long lastTimeOrientationSignal;
-	private long lastTimeLog;
-
-	private int currentThrottle;
-	private int currentElevator;
-	private int currentAileron;
-	private int currentRudder;
 }

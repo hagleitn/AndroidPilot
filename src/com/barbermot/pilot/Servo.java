@@ -6,8 +6,14 @@ import ioio.lib.api.exception.ConnectionLostException;
 
 public class Servo {
 	
+	private int pulseWidth;
+	private int minIn;
+	private int maxIn;
+	private int minOut;
+	private int maxOut;
+	PwmOutput pwm;
+	
 	public Servo(IOIO ioio, int pin, int minIn, int maxIn, int minOut, int maxOut) throws ConnectionLostException {
-		this.pin = pin;
 		this.minIn = minIn;
 		this.maxIn = maxIn;
 		this.minOut = minOut;
@@ -38,13 +44,5 @@ public class Servo {
 	
 	private int mapReverse(int value) {
 		return minIn + (maxIn-minIn)*(value-minOut)/(maxOut-minOut);
-	}
-	
-	int pin;
-	int pulseWidth;
-	int minIn;
-	int maxIn;
-	int minOut;
-	int maxOut;
-	PwmOutput pwm;
+	}	
 }

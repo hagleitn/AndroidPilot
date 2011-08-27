@@ -15,6 +15,10 @@ public class OrientationSignal extends Signal {
 	public static final String TAG = "OrientationSignal";
 	
 	public enum Type {YAW,ROLL,PITCH};
+	
+	private static SensorAdapter adapter;
+	private Type type;
+
 
 	public OrientationSignal(IOIO ioio, SensorManager manager, Type type) throws ConnectionLostException {
 		super(ioio, IOIO.INVALID_PIN);
@@ -50,6 +54,15 @@ public class OrientationSignal extends Signal {
 	}
 	
 	private class SensorAdapter implements SensorEventListener {
+		
+		private float yaw;
+		private float roll;
+		private float pitch;
+		float[] orientation;
+		private float[] accel;
+		private float[] magnetic;
+		private float[] R;
+		private float[] I;
 		
 		public SensorAdapter(SensorManager manager) {
 			Sensor accelerometer = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -97,17 +110,5 @@ public class OrientationSignal extends Signal {
 			
 			//Log.d(TAG, "Orientation: "+yaw+", "+pitch+", "+roll);
 		}
-
-		private float yaw;
-		private float roll;
-		private float pitch;
-		float[] orientation;
-		private float[] accel;
-		private float[] magnetic;
-		private float[] R;
-		private float[] I;
-	}
-	
-	private static SensorAdapter adapter;
-	private Type type;
+	}	
 }

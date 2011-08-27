@@ -8,6 +8,11 @@ import ioio.lib.api.exception.ConnectionLostException;
 
 public class SerialController {
 	
+	private long startSleep;
+	private long sleepTime;
+	private Parser parser;
+	private Tokenizer token;
+	
 	public SerialController(IOIO ioio, FlightComputer computer, char delim, int rxPin, PrintStream printer) 
 			throws ConnectionLostException {
 		token = new Tokenizer(ioio, delim, rxPin, printer);
@@ -41,10 +46,5 @@ public class SerialController {
 				parser.doCmd(cmd);
 			}
 		}
-	}
-	
-	private long startSleep;
-	private long sleepTime;
-	private Parser parser;
-	private Tokenizer token;
+	}	
 }

@@ -3,6 +3,19 @@ package com.barbermot.pilot;
 import ioio.lib.api.exception.ConnectionLostException;
 
 public class AutoControl implements SignalListener {
+	
+	private ControlListener control;
+	private double proportional;
+	private double integral;
+	private double derivative;
+	private double lastError;
+	private double lastTime;
+	private double cummulativeError;
+	private double maxCummulative;
+	private double minCummulative;
+	private double goal;
+	private boolean engaged;
+	private boolean isFirst;
 
 	public AutoControl(ControlListener control) {
 		this.control = control;
@@ -96,7 +109,7 @@ public class AutoControl implements SignalListener {
 		return maxCummulative; 
 	}
 	
-	void setMaxCummulative(double max) { 
+	public void setMaxCummulative(double max) { 
 		this.maxCummulative = max; 
 	}
 
@@ -124,17 +137,4 @@ public class AutoControl implements SignalListener {
 	public boolean isEngaged() { 
 		return engaged; 
 	}
-
-	private ControlListener control;
-	private double proportional;
-	private double integral;
-	private double derivative;
-	private double lastError;
-	private double lastTime;
-	private double cummulativeError;
-	private double maxCummulative;
-	private double minCummulative;
-	private double goal;
-	private boolean engaged;
-	private boolean isFirst;
 }
