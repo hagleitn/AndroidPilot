@@ -162,6 +162,7 @@ class FlightComputer {
 			controlMask = (char) (controlMask | mask);
 			currentElevator = QuadCopter.STOP_SPEED;
 			currentAileron = QuadCopter.STOP_SPEED;
+			currentRudder = QuadCopter.STOP_SPEED;
 		}
 		rc.setControlMask(controlMask);
 
