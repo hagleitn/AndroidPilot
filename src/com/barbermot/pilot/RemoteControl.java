@@ -6,6 +6,7 @@ import ioio.lib.api.PulseInput.PulseMode;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.EnumMap;
+import java.util.concurrent.TimeoutException;
 
 import android.util.Log;
 
@@ -18,7 +19,7 @@ public class RemoteControl {
     public static final char AILERON_MASK 	= 0x02;
     public static final char THROTTLE_MASK 	= 0x04;
     public static final char RUDDER_MASK 	= 0x08;
-    public static final int  TIMEOUT 		= 20000;
+    public static final float TIMEOUT 		= 0.02f;
     
     private static final int THROTTLE_MIN 	= 1300; // min raw value from pulse in to take over
     private static final int THROTTLE_DELTA = 200;  // if manual throttle comes that close to current setting take over
@@ -43,12 +44,12 @@ public class RemoteControl {
     	this.ioio = ioio;
     }
     
-    private int pulseIn(int pin, boolean val, int timeout) throws ConnectionLostException {
+    private int pulseIn(int pin, boolean val, float timeout) throws ConnectionLostException, TimeoutException {
     	PulseInput pulse = ioio.openPulseInput(pin, val?PulseMode.POSITIVE:PulseMode.NEGATIVE);
     	int pw;
     	while (true) {
     		try {
-    			pw = (int) (pulse.getDuration()*1000000);
+    			pw = (int) (pulse.getDuration(TIMEOUT)*1000000);
     			break;
     		} catch (InterruptedException e) {}
     	}
@@ -57,15 +58,23 @@ public class RemoteControl {
     }
     
     public void update() throws ConnectionLostException {
-    	if (controlMask == FULL_MANUAL || isEngaged()) {
-    		controlMask = FULL_MANUAL;
+    	try {
+    		if (controlMask == FULL_MANUAL || isEngaged()) {
+    			controlMask = FULL_MANUAL;
+    		}
+    	} catch (TimeoutException e) {
+    		Log.i(TAG, "isEngaged timed out.");
     	}
 
     	char mask = 0x01;
     	for (QuadCopter.Direction d: QuadCopter.Direction.values()) {
     		if ((controlMask & mask) != 0) {
-    			int value = pulseIn(pins.get(d),true,TIMEOUT);
-    			ufo.writeRaw(d,value);
+    			try {
+    				int value = pulseIn(pins.get(d),true,TIMEOUT);
+    				ufo.writeRaw(d,value);
+    			} catch (TimeoutException e) {
+    				Log.i(TAG, "Read on "+d+" timed out.");
+    			}
     		}
     		mask = (char) (mask << 1);
     	}
@@ -83,7 +92,7 @@ public class RemoteControl {
     	return controlMask; 
     }
     
-    public boolean isEngaged() throws ConnectionLostException {
+    public boolean isEngaged() throws ConnectionLostException, TimeoutException {
         int value = pulseIn(pins.get(QuadCopter.Direction.VERTICAL),true,TIMEOUT);
         if (armed) {
             int vertical = ufo.readRaw(QuadCopter.Direction.VERTICAL);
