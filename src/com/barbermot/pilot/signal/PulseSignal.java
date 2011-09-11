@@ -9,40 +9,40 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
 
 class PulseSignal extends IoioSignal {
-
-	public final String TAG = "Signal";
-	public final float TIMEOUT = 0.02f;
-
-	protected int pin;
-	protected PulseInput pulse;
-
-	public PulseSignal(IOIO ioio, int pin) throws ConnectionLostException {
-		super(ioio);
-		this.pin = pin;
-		listeners = new ArrayList<SignalListener>(2);
-	}
-
-	protected long measure() throws ConnectionLostException,
-			MeasurementException {
-		pulse = ioio.openPulseInput(pin, PulseMode.POSITIVE);
-		long measurement = 0;
-		try {
-			while (true) {
-				try {
-					measurement = (long) (pulse.getDuration(TIMEOUT) * 1000000);
-					break;
-				} catch (InterruptedException e) {
-					/* retry */
-				} catch (TimeoutException e) {
-					// Log.i(TAG, "Read on " + pin + " timed out.");
-					throw new MeasurementException(e);
-				}
-			}
-		} finally {
-			if (pulse != null) {
-				pulse.close();
-			}
-		}
-		return measurement;
-	}
+    
+    public final String  TAG     = "Signal";
+    public final float   TIMEOUT = 0.02f;
+    
+    protected int        pin;
+    protected PulseInput pulse;
+    
+    public PulseSignal(IOIO ioio, int pin) throws ConnectionLostException {
+        super(ioio);
+        this.pin = pin;
+        listeners = new ArrayList<SignalListener>(2);
+    }
+    
+    protected long measure() throws ConnectionLostException,
+            MeasurementException {
+        pulse = ioio.openPulseInput(pin, PulseMode.POSITIVE);
+        long measurement = 0;
+        try {
+            while (true) {
+                try {
+                    measurement = (long) (pulse.getDuration(TIMEOUT) * 1000000);
+                    break;
+                } catch (InterruptedException e) {
+                    /* retry */
+                } catch (TimeoutException e) {
+                    // Log.i(TAG, "Read on " + pin + " timed out.");
+                    throw new MeasurementException(e);
+                }
+            }
+        } finally {
+            if (pulse != null) {
+                pulse.close();
+            }
+        }
+        return measurement;
+    }
 }

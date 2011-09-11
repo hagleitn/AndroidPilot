@@ -1,5 +1,4 @@
 package com.barbermot.pilot.builder;
 
-public class BuildException extends Exception {
-
-}
+@SuppressWarnings("serial")
+public class BuildException extends Exception {}
