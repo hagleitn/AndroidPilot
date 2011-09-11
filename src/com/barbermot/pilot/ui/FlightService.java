@@ -1,4 +1,9 @@
-package com.barbermot.pilot;
+package com.barbermot.pilot.ui;
+
+import com.barbermot.pilot.R;
+import com.barbermot.pilot.R.drawable;
+import com.barbermot.pilot.R.string;
+import com.barbermot.pilot.flight.FlightThread;
 
 import android.app.Notification;
 import android.app.NotificationManager;

@@ -1,24 +1,26 @@
-package com.barbermot.pilot;
+package com.barbermot.pilot.parser;
 
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import com.barbermot.pilot.flight.FlightComputer;
+
 public class Parser {
 
 	public Parser(FlightComputer computer) {
 		this.computer = computer;
 	}
-	
+
 	public void doCmd(String cmd) throws ConnectionLostException {
 		int x = 0;
 		Scanner scanner = new Scanner(cmd);
-		
+
 		if (scanner.hasNext(".")) {
 			char c = scanner.next(".").charAt(0);
 			switch (c) {
-			
+
 			// Command "H <int>" hovers the thing at altitude <int>
 			case 'h':
 			case 'H':
@@ -30,7 +32,7 @@ public class Parser {
 				}
 				break;
 
-				// Command "T <int>" takeoff and start hovering at <int>
+			// Command "T <int>" takeoff and start hovering at <int>
 			case 't':
 			case 'T':
 				if (scanner.hasNextInt()) {
@@ -41,36 +43,35 @@ public class Parser {
 				}
 				break;
 
-				// Command "L" lands the thing
+			// Command "L" lands the thing
 			case 'l':
 			case 'L':
 				computer.land();
 				break;
 
 			case 'C':
-			case 'c':
-			{
+			case 'c': {
 				int type;
 
-				double proportional;
-				double integral;
-				double derivative;
-				double min;
-				double max;
-				
+				float proportional;
+				float integral;
+				float derivative;
+				float min;
+				float max;
+
 				try {
 					type = scanner.nextInt();
-					proportional = scanner.nextDouble();
-					integral = scanner.nextDouble();
-					derivative = scanner.nextDouble();
-					min = scanner.nextDouble();
-					max = scanner.nextDouble();
-				} catch(NoSuchElementException e) {
+					proportional = scanner.nextFloat();
+					integral = scanner.nextFloat();
+					derivative = scanner.nextFloat();
+					min = scanner.nextFloat();
+					max = scanner.nextFloat();
+				} catch (NoSuchElementException e) {
 					fail();
 					return;
 				}
 
-				double[] conf = {proportional,integral,derivative,min,max};
+				float[] conf = { proportional, integral, derivative, min, max };
 				switch (type) {
 				case 1:
 					computer.setHoverConfiguration(conf);
@@ -86,7 +87,7 @@ public class Parser {
 					break;
 				}
 			}
-			break;
+				break;
 
 			// (Re-)Engage auto throttle
 			case 'e':
@@ -94,18 +95,18 @@ public class Parser {
 				computer.autoControl();
 				break;
 
-				// Command "S" turns on/off stabilization
+			// Command "S" turns on/off stabilization
 			case 's':
 			case 'S':
 				if (scanner.hasNextInt()) {
 					x = scanner.nextInt();
-					computer.stabilize(x==0?false:true);
+					computer.stabilize(x == 0 ? false : true);
 				} else {
 					fail();
 				}
 				break;
 
-				// Set minimum throttle
+			// Set minimum throttle
 			case 'm':
 			case 'M':
 				if (scanner.hasNextInt()) {
@@ -116,7 +117,7 @@ public class Parser {
 				}
 				break;
 
-				// Set maximum throttle
+			// Set maximum throttle
 			case 'n':
 			case 'N':
 				if (scanner.hasNextInt()) {
@@ -127,7 +128,7 @@ public class Parser {
 				}
 				break;
 
-				// Commands "X" stops the thing
+			// Commands "X" stops the thing
 			case 'x':
 			case 'X':
 				computer.abort();
@@ -137,12 +138,12 @@ public class Parser {
 				break;
 			}
 		}
-		
+
 	}
-	
+
 	public void fail() {
-		
+
 	}
-	
+
 	private FlightComputer computer;
 }
