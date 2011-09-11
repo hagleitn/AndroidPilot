@@ -63,8 +63,8 @@ public class FlightBuilder {
 			buildRemoteControl();
 			buildControls();
 			buildSignalArray();
-			buildSerialController();
 			buildLogger();
+			buildSerialController();
 
 			futures.add(scheduler.scheduleWithFixedDelay(computer, 0,
 					config.getMinTimeFlightComputer(), TimeUnit.MILLISECONDS));
@@ -111,19 +111,23 @@ public class FlightBuilder {
 
 		listener = new ThrottleControlListener();
 		listener.setComputer(computer);
-		computer.setAutoThrottle(new AutoControl(listener));
+		computer.setAutoThrottle(new AutoControl(listener, "ThrottleControl",
+				false));
 
 		listener = new AileronControlListener();
 		listener.setComputer(computer);
-		computer.setAutoAileron(new RadianAutoControl(listener));
+		computer.setAutoAileron(new RadianAutoControl(listener,
+				"AileronControl", false));
 
 		listener = new RudderControlListener();
 		listener.setComputer(computer);
-		computer.setAutoRudder(new RadianAutoControl(listener));
+		computer.setAutoRudder(new RadianAutoControl(listener, "RudderControl",
+				false));
 
 		listener = new ElevatorControlListener();
 		listener.setComputer(computer);
-		computer.setAutoElevator(new RadianAutoControl(listener));
+		computer.setAutoElevator(new RadianAutoControl(listener,
+				"ElevatorControl", false));
 	}
 
 	private void buildQuadCopter() throws ConnectionLostException {

@@ -47,8 +47,6 @@ public class SerialController implements Runnable {
 	}
 
 	public void executeCommand() throws IOException, ConnectionLostException {
-		Log.d(TAG, "Execute Command");
-
 		if (startSleep != 0) {
 			if (System.currentTimeMillis() - startSleep < sleepTime) {
 				return;
@@ -62,14 +60,11 @@ public class SerialController implements Runnable {
 		// String cmd = scanner.next();
 		StringBuffer sb = new StringBuffer();
 		char c;
-		Log.d(TAG, "About to read...");
 		while ((c = (char) in.read()) != ';') {
-			Log.d(TAG, "character: " + c);
 			sb.append(c);
 		}
 
 		String cmd = sb.toString().trim();
-		Log.d(TAG, "String: " + cmd);
 		if (cmd.length() > 0) {
 			printer.println(cmd);
 			if (cmd.charAt(0) == 'z' || cmd.charAt(0) == 'Z') {

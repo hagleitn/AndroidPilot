@@ -5,6 +5,8 @@ import ioio.lib.api.exception.ConnectionLostException;
 import java.io.PrintStream;
 import java.util.concurrent.ScheduledExecutorService;
 
+import android.util.Log;
+
 import com.barbermot.pilot.pid.AutoControl;
 import com.barbermot.pilot.quad.QuadCopter;
 import com.barbermot.pilot.rc.RemoteControl;
@@ -208,6 +210,8 @@ public class FlightComputer implements Runnable {
 
 			// no height signal from ultra sound try descending
 			if (time - lastTimeHeightSignal > config.getEmergencyDelta()) {
+				Log.d(TAG, "Time: " + time + ", last height: "
+						+ lastTimeHeightSignal);
 				emergencyDescent();
 			}
 

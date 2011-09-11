@@ -1,6 +1,7 @@
 package com.barbermot.pilot.pid;
 
 import ioio.lib.api.exception.ConnectionLostException;
+import android.util.Log;
 
 import com.barbermot.pilot.signal.SignalListener;
 
@@ -11,17 +12,24 @@ public class AutoControl implements SignalListener {
 	private float integral;
 	private float derivative;
 	private float lastError;
-	private float lastTime;
+	private long lastTime;
 	private float cummulativeError;
 	private float maxCummulative;
 	private float minCummulative;
 	private boolean engaged;
 	private boolean isFirst;
+	private String TAG;
+	private boolean log;
 	protected float goal;
 
 	public AutoControl(ControlListener control) {
+		this(control, "AutoControl", false);
+	}
+
+	public AutoControl(ControlListener control, String tag, boolean log) {
 		this.control = control;
 		this.isFirst = true;
+		this.log = log;
 	}
 
 	public void update(float value, long time) throws ConnectionLostException {
@@ -35,13 +43,16 @@ public class AutoControl implements SignalListener {
 				return;
 			}
 
-			float pTotal = 0;
-			float iTotal = 0;
-			float dTotal = 0;
+			float pTotal;
+			float iTotal;
+			float dTotal;
 
 			float timeDelta = time - lastTime;
 
 			if (timeDelta <= 0) {
+				if (log) {
+					Log.d(TAG, "Message from the past: " + timeDelta);
+				}
 				return;
 			}
 
@@ -63,10 +74,19 @@ public class AutoControl implements SignalListener {
 			// adjustment to react to the closing speed
 			dTotal = derivative * (errorDelta / timeDelta);
 
+			float gTotal = pTotal + iTotal + dTotal;
+
+			if (log) {
+				String msg = String.format(
+						"%s (error = %f, dT = %f): %f + %f + %f = %f", TAG,
+						error, timeDelta, pTotal, iTotal, dTotal, gTotal);
+				Log.d(TAG, msg);
+			}
+
 			lastError = error;
 			lastTime = time;
 
-			control.adjust(pTotal + iTotal + dTotal);
+			control.adjust(gTotal);
 		}
 	}
 
@@ -133,6 +153,9 @@ public class AutoControl implements SignalListener {
 	}
 
 	public void engage(boolean engaged) {
+		if (log) {
+			Log.d(TAG, "AutoThrottle " + (engaged ? "engaged" : "disengaged"));
+		}
 		this.engaged = engaged;
 	}
 

@@ -64,6 +64,7 @@ public class FlightConfiguration {
 	// throttle setting for when we don't know the height anymore
 	private static final int EMERGENCY_DESCENT = QuadCopter.STOP_SPEED
 			- (QuadCopter.MAX_SPEED - QuadCopter.MIN_SPEED) / 20;
+
 	private static final int EMERGENCY_DELTA = 1000;
 
 	private static final int NUM_THREADS = 6;

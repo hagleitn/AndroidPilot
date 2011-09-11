@@ -33,6 +33,7 @@ public abstract class IoioSignal extends Signal implements Runnable {
 	public void run() {
 		try {
 			float measurement = read();
+
 			for (SignalListener l : listeners) {
 				l.update(measurement, time);
 			}

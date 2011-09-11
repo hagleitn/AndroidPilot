@@ -6,6 +6,10 @@ public class RadianAutoControl extends AutoControl {
 		super(control);
 	}
 
+	public RadianAutoControl(ControlListener control, String tag, boolean log) {
+		super(control, tag, log);
+	}
+
 	@Override
 	public float computeError(float value) {
 		float left = goal - value;
