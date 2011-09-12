@@ -33,6 +33,16 @@ import com.barbermot.pilot.signal.Signal;
 import com.barbermot.pilot.signal.SignalListener;
 import com.barbermot.pilot.signal.SignalManager;
 
+/**
+ * FlightBuilder wires up the system. It builds the flight computer instance and
+ * hooks it up with the respective signals and auto controls. FlightBuilder also
+ * starts the processing.
+ * 
+ * It is a one time instance. It can only be used to reliably create one
+ * instance of the system and when a disconnect from ioio occurs the system has
+ * to be shutdown and a new instance is needed to resume operation after the
+ * connection comes back.
+ */
 public class FlightBuilder {
     
     private FlightComputer                            computer;
@@ -46,6 +56,17 @@ public class FlightBuilder {
     private Uart                                      uart;
     private List<Future<?>>                           futures;
     
+    /**
+     * getComputer builds the FlightComputer. It hooks up the controls to the
+     * respective signals and starts processing.
+     * 
+     * @param ioio
+     *            A valid connection to the IOIO board.
+     * @param manager
+     *            An Android SensorManager to access the phone sensors
+     * @return A one time instance of the FlightComputer
+     * @throws BuildException
+     */
     public FlightComputer getComputer(IOIO ioio, SensorManager manager)
             throws BuildException {
         try {
@@ -75,6 +96,13 @@ public class FlightBuilder {
         return computer;
     }
     
+    /**
+     * getFutures returns handles to the periodic and continuous tasks started
+     * by the FlightBuilder. These futures can be used to orderly shutdown the
+     * system.
+     * 
+     * @return A list of futures for all the tasks started by the builder.
+     */
     public List<Future<?>> getFutures() {
         return futures;
     }
@@ -122,7 +150,7 @@ public class FlightBuilder {
         listener = new RudderControlListener();
         listener.setComputer(computer);
         computer.setAutoRudder(new RadianAutoControl(listener, "RudderControl",
-                false));
+                true));
         
         listener = new ElevatorControlListener();
         listener.setComputer(computer);

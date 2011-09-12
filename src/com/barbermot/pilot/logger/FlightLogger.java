@@ -4,6 +4,11 @@ import java.io.PrintStream;
 
 import com.barbermot.pilot.flight.FlightComputer;
 
+/**
+ * Flight Logger is a periodic task that logs information about the status of
+ * the flight computer.
+ * 
+ */
 public class FlightLogger implements Runnable {
     
     @SuppressWarnings("unused")

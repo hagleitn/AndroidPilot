@@ -12,6 +12,15 @@ import android.util.Log;
 
 import com.barbermot.pilot.quad.QuadCopter;
 
+/**
+ * RemoteControl is a periodic tasks that checks whether the user has engaged
+ * manual override of the quad copter controls via opening the throttle on the
+ * RC controller.
+ * 
+ * It also allows fine grained control over which control dimensions are
+ * manually v. automatically controlled.
+ * 
+ */
 public class RemoteControl implements Runnable {
     
     public final static String TAG            = "RemoteControl";
@@ -99,6 +108,14 @@ public class RemoteControl implements Runnable {
         armed = arm;
     }
     
+    /**
+     * setControlMask changes which servos are controlled manually versus by the
+     * software.
+     * 
+     * @param mask
+     *            Bitmask specifying which controls are manually controlled
+     * @throws ConnectionLostException
+     */
     public synchronized void setControlMask(char mask)
             throws ConnectionLostException {
         controlMask = mask;
@@ -113,6 +130,14 @@ public class RemoteControl implements Runnable {
         return controlMask;
     }
     
+    /**
+     * Tests whether the throttle is above the threshold that indicates manual
+     * override.
+     * 
+     * @return true if manual override, false otherwise.
+     * @throws ConnectionLostException
+     * @throws TimeoutException
+     */
     public boolean isEngaged() throws ConnectionLostException, TimeoutException {
         int value = pulseIn(throttleMonitorPin, true, TIMEOUT);
         if (armed) {

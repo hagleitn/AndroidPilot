@@ -5,6 +5,12 @@ import android.util.Log;
 
 import com.barbermot.pilot.signal.SignalListener;
 
+/**
+ * AutoControl is a generic PID controller. It connects signals with controls,
+ * trying to achieve a specified goal by making adjustments to the control it is
+ * given.
+ * 
+ */
 public class AutoControl implements SignalListener {
     
     private ControlListener control;
@@ -32,6 +38,7 @@ public class AutoControl implements SignalListener {
         this.log = log;
     }
     
+    @Override
     public void update(float value, long time) throws ConnectionLostException {
         if (engaged) {
             
@@ -90,10 +97,28 @@ public class AutoControl implements SignalListener {
         }
     }
     
+    /**
+     * Implementation interface to specify the method to compute the error
+     * (difference between signal value and goal). Default implementation simply
+     * subtracts the value from the goal.
+     * 
+     * @param value
+     *            Current signal value
+     * @return Directed (signed) error
+     */
     protected float computeError(float value) {
         return goal - value;
     }
     
+    /**
+     * setConfiguration sets values for proportional, integral and derivative
+     * factors for the PID controller. It also requires min and max values for
+     * the integral to take.
+     * 
+     * @param conf
+     *            Array of five float values: proportianal, integral,
+     *            derivative, min integral, max integral
+     */
     public void setConfiguration(float[] conf) {
         proportional = conf[0];
         integral = conf[1];
@@ -152,6 +177,13 @@ public class AutoControl implements SignalListener {
         isFirst = true;
     }
     
+    /**
+     * engage starts and stops the pid controller. While stopped all signals are
+     * ignored and no inputs are sent to the control.
+     * 
+     * @param engaged
+     *            boolean to start/stop the pid controller
+     */
     public void engage(boolean engaged) {
         if (log) {
             Log.d(TAG, "AutoThrottle " + (engaged ? "engaged" : "disengaged"));

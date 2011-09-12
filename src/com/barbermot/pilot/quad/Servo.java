@@ -4,7 +4,7 @@ import ioio.lib.api.IOIO;
 import ioio.lib.api.PwmOutput;
 import ioio.lib.api.exception.ConnectionLostException;
 
-public class Servo {
+class Servo {
     
     private int       pulseWidth;
     private int       minIn;

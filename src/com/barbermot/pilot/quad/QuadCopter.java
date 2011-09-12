@@ -6,6 +6,11 @@ import ioio.lib.api.exception.ConnectionLostException;
 import java.util.EnumMap;
 import java.util.Map;
 
+/**
+ * Interface to the QuadCopter's servos. Allows to directly set values for all
+ * control dimensions.
+ * 
+ */
 public class QuadCopter {
     
     public enum Direction {

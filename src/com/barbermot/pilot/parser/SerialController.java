@@ -10,6 +10,11 @@ import android.util.Log;
 
 import com.barbermot.pilot.flight.FlightComputer;
 
+/**
+ * SerialController is a tasks that waits for user input and relays commands to
+ * the FlightComputer.
+ * 
+ */
 public class SerialController implements Runnable {
     
     private static final String TAG = "SerialController";
