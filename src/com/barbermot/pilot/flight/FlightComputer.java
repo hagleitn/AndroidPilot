@@ -60,6 +60,9 @@ public class FlightComputer implements Runnable {
     private float                    height;
     private float                    zeroHeight;
     
+    private float                    gpsHeight;
+    private float                    zeroGpsHeight;
+    
     private float                    longitudinalDisplacement;
     private float                    lateralDisplacement;
     private float                    heading;
@@ -67,6 +70,7 @@ public class FlightComputer implements Runnable {
     private volatile long            time;
     private volatile long            lastTimeOrientationSignal;
     private volatile long            lastTimeHeightSignal;
+    private volatile long            lastTimeGpsHeight;
     
     private int                      currentThrottle;
     private int                      currentElevator;
@@ -231,6 +235,7 @@ public class FlightComputer implements Runnable {
                 case GROUND:
                     // calibration
                     zeroHeight = height;
+                    zeroGpsHeight = gpsHeight;
                     break;
                 case HOVER:
                     // nothing
@@ -469,6 +474,22 @@ public class FlightComputer implements Runnable {
     
     public void setCurrentRudder(int currentRudder) {
         this.currentRudder = currentRudder;
+    }
+    
+    public void setGpsHeight(float gpsHeight) {
+        this.gpsHeight = gpsHeight;
+    }
+    
+    public float getGpsHeight() {
+        return gpsHeight;
+    }
+    
+    public long getLastTimeGpsHeight() {
+        return lastTimeGpsHeight;
+    }
+    
+    public void setLastTimeGpsHeight(long lastTimeGpsHeight) {
+        this.lastTimeGpsHeight = lastTimeGpsHeight;
     }
     
 }

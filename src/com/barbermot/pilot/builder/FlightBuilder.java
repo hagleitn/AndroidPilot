@@ -15,6 +15,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import android.hardware.SensorManager;
+import android.location.LocationManager;
 
 import com.barbermot.pilot.flight.AileronControlListener;
 import com.barbermot.pilot.flight.ElevatorControlListener;
@@ -47,7 +48,8 @@ public class FlightBuilder {
     
     private FlightComputer                            computer;
     private PrintStream                               printer;
-    private SensorManager                             manager;
+    private SensorManager                             sensorManager;
+    private LocationManager                           locationManager;
     private ScheduledExecutorService                  scheduler;
     private QuadCopter                                ufo;
     private FlightConfiguration                       config;
@@ -67,15 +69,16 @@ public class FlightBuilder {
      * @return A one time instance of the FlightComputer
      * @throws BuildException
      */
-    public FlightComputer getComputer(IOIO ioio, SensorManager manager)
-            throws BuildException {
+    public FlightComputer getComputer(IOIO ioio, SensorManager sensorManager,
+            LocationManager locationManager) throws BuildException {
         try {
             futures = new LinkedList<Future<?>>();
             this.ioio = ioio;
-            this.manager = manager;
-            computer = new FlightComputer();
-            config = FlightConfiguration.get();
-            map = config.getPinMap();
+            this.sensorManager = sensorManager;
+            this.locationManager = locationManager;
+            this.computer = new FlightComputer();
+            this.config = FlightConfiguration.get();
+            this.map = config.getPinMap();
             
             buildScheduler();
             buildUart();
@@ -150,7 +153,7 @@ public class FlightBuilder {
         listener = new RudderControlListener();
         listener.setComputer(computer);
         computer.setAutoRudder(new RadianAutoControl(listener, "RudderControl",
-                true));
+                false));
         
         listener = new ElevatorControlListener();
         listener.setComputer(computer);
@@ -189,8 +192,8 @@ public class FlightBuilder {
     }
     
     private void buildSignalArray() throws ConnectionLostException {
-        SignalManager signalManager = SignalManager.getManager(ioio, manager,
-                scheduler);
+        SignalManager signalManager = SignalManager.getManager(ioio,
+                sensorManager, locationManager, scheduler);
         Signal signal = signalManager.getUltraSoundSignal(
                 config.getMinTimeUltraSound(),
                 map.get(FlightConfiguration.PinType.ULTRA_SOUND));
@@ -233,6 +236,15 @@ public class FlightBuilder {
             }
         });
         signal.registerListener(computer.getAutoRudder());
+        
+        signal = signalManager.getGpsAltitudeSignal(config.getMinTimeGps());
+        signal.registerListener(new SignalListener() {
+            
+            public void update(float x, long time) {
+                computer.setGpsHeight(x);
+                computer.setLastTimeGpsHeight(time);
+            }
+        });
         futures.addAll(signalManager.getFutures());
     }
 }

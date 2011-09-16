@@ -11,6 +11,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import android.hardware.SensorManager;
+import android.location.LocationManager;
 
 public class SignalManager {
     
@@ -18,17 +19,20 @@ public class SignalManager {
     private ScheduledExecutorService scheduler;
     private EnumMap<Type, Signal>    signalMap;
     private SensorManager            sensorManager;
+    private LocationManager          locationManager;
     private OrientationSignal        orientation;
+    private GpsSignal                gps;
     private IOIO                     ioio;
     private List<Future<?>>          futures;
     
     private enum Type {
-        ORIENTATION_YAW, ORIENTATION_PITCH, ORIENTATION_ROLL, ULTRASOUND_HEIGHT
+        ORIENTATION_YAW, ORIENTATION_PITCH, ORIENTATION_ROLL, ULTRASOUND_HEIGHT, GPS_HEIGHT
     };
     
-    private SignalManager(IOIO ioio, SensorManager manager,
-            ScheduledExecutorService scheduler) {
-        this.sensorManager = manager;
+    private SignalManager(IOIO ioio, SensorManager sensorManager,
+            LocationManager locationManager, ScheduledExecutorService scheduler) {
+        this.sensorManager = sensorManager;
+        this.locationManager = locationManager;
         this.scheduler = scheduler;
         this.ioio = ioio;
         this.futures = new LinkedList<Future<?>>();
@@ -37,6 +41,7 @@ public class SignalManager {
     
     public void shutdown() {
         orientation.abort();
+        gps.abort();
         for (Type t : Type.values()) {
             Signal s = signalMap.get(t);
             if (null != s) {
@@ -49,10 +54,12 @@ public class SignalManager {
         return futures;
     }
     
-    public static SignalManager getManager(IOIO ioio, SensorManager manager,
+    public static SignalManager getManager(IOIO ioio,
+            SensorManager sensorManager, LocationManager locationManager,
             ScheduledExecutorService scheduler) {
         return SignalManager.manager == null ? SignalManager.manager = new SignalManager(
-                ioio, manager, scheduler) : SignalManager.manager;
+                ioio, sensorManager, locationManager, scheduler)
+                : SignalManager.manager;
     }
     
     public Signal getYawSignal(int interval) throws ConnectionLostException {
@@ -85,6 +92,21 @@ public class SignalManager {
             signalMap.put(Type.ULTRASOUND_HEIGHT, signal);
         }
         return signalMap.get(Type.ULTRASOUND_HEIGHT);
+    }
+    
+    public Signal getGpsAltitudeSignal(int interval) {
+        if (!signalMap.containsKey(Type.GPS_HEIGHT)) {
+            createGpsSignals(interval);
+        }
+        return signalMap.get(Type.GPS_HEIGHT);
+    }
+    
+    private void createGpsSignals(int interval) {
+        SensorAdapter height = new SensorAdapter();
+        gps = new GpsSignal(locationManager, height, new DummyListener(),
+                new DummyListener(), new DummyListener(), interval);
+        futures.add(scheduler.submit(gps));
+        signalMap.put(Type.GPS_HEIGHT, height);
     }
     
     private void createOrientationSignals(int interval) {

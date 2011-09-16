@@ -12,6 +12,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import android.hardware.SensorManager;
+import android.location.LocationManager;
 import android.util.Log;
 
 import com.barbermot.pilot.builder.BuildException;
@@ -26,12 +27,16 @@ public class FlightThread extends Thread {
     private boolean         abort     = false;
     private boolean         connected = true;
     
-    SensorManager           manager;
+    private SensorManager   sensorManager;
+    private LocationManager locationManager;
+    
     private FlightComputer  computer;
     private List<Future<?>> handles;
     
-    public FlightThread(SensorManager manager) {
-        this.manager = manager;
+    public FlightThread(SensorManager sensorManager,
+            LocationManager locationManager) {
+        this.sensorManager = sensorManager;
+        this.locationManager = locationManager;
     }
     
     @Override
@@ -90,7 +95,8 @@ public class FlightThread extends Thread {
     private void setup() throws ConnectionLostException {
         try {
             FlightBuilder builder = new FlightBuilder();
-            computer = builder.getComputer(ioio, manager);
+            computer = builder
+                    .getComputer(ioio, sensorManager, locationManager);
             handles = builder.getFutures();
             led = ioio.openDigitalOutput(0);
         } catch (BuildException e) {

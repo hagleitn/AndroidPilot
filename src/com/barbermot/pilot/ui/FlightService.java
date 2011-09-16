@@ -6,6 +6,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.SensorManager;
+import android.location.LocationManager;
 import android.os.IBinder;
 import android.widget.Toast;
 
@@ -26,7 +27,9 @@ public class FlightService extends Service {
     public void onCreate() {
         showNotification();
         flightThread = new FlightThread(
-                (SensorManager) this.getSystemService(Context.SENSOR_SERVICE));
+                (SensorManager) this.getSystemService(Context.SENSOR_SERVICE),
+                (LocationManager) this
+                        .getSystemService(Context.LOCATION_SERVICE));
     }
     
     @Override

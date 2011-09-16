@@ -72,6 +72,8 @@ public class FlightConfiguration {
     
     private static final int      NUM_THREADS              = 6;
     
+    private static final int      MIN_TIME_GPS             = 100;
+    
     private Map<PinType, Integer> pinMap;
     
     public enum PinType {
@@ -168,6 +170,10 @@ public class FlightConfiguration {
     
     public long getMinTimeRcEngagement() {
         return MIN_TIME_RC_ENGAGEMENT;
+    }
+    
+    public int getMinTimeGps() {
+        return MIN_TIME_GPS;
     }
     
 }
