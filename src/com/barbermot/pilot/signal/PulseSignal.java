@@ -5,13 +5,12 @@ import ioio.lib.api.PulseInput;
 import ioio.lib.api.PulseInput.PulseMode;
 import ioio.lib.api.exception.ConnectionLostException;
 
-import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
 
 class PulseSignal extends IoioSignal {
     
     public final String  TAG     = "Signal";
-    public final float   TIMEOUT = 0.02f;
+    public final float   TIMEOUT = 0.2f;
     
     protected int        pin;
     protected PulseInput pulse;
@@ -19,7 +18,6 @@ class PulseSignal extends IoioSignal {
     public PulseSignal(IOIO ioio, int pin) throws ConnectionLostException {
         super(ioio);
         this.pin = pin;
-        listeners = new ArrayList<SignalListener>(2);
     }
     
     protected long measure() throws ConnectionLostException,

@@ -29,16 +29,16 @@ public class FlightLogger implements Runnable {
     public void run() {
         String str = String
                 .format("st: %s\tms: %d\trc: %h\nh: %f\tdy: %f\tdx: %f\tdz: %f\ngh: %f\nt: %d\te: %d\ta: %d\tr: %d",
-                        computer.getState(), computer.getTime(), computer
-                                .getRc().getControlMask(),
-                        computer.getHeight(), computer
-                                .getLongitudinalDisplacement(), computer
-                                .getLateralDisplacement(), computer
-                                .getHeading(), computer.getGpsHeight(),
-                        computer.getCurrentThrottle(), computer
-                                .getCurrentElevator(), computer
-                                .getCurrentAileron(), computer
-                                .getCurrentRudder());
+                        computer.getState().getType(), computer.getTime(),
+                        computer.getRc().getControlMask(),
+                        computer.getHeight(),
+                        computer.getLongitudinalDisplacement(),
+                        computer.getLateralDisplacement(),
+                        computer.getHeading(), computer.getGpsHeight(),
+                        computer.getCurrentThrottle(),
+                        computer.getCurrentElevator(),
+                        computer.getCurrentAileron(),
+                        computer.getCurrentRudder());
         // Log.d(TAG, str);
         printer.println(str);
     }

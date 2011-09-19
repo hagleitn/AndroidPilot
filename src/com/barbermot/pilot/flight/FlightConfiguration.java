@@ -31,10 +31,10 @@ public class FlightConfiguration {
     public static final int       MIN_TIME_STATUS_MESSAGE  = 5000;
     
     // values for the PID controller
-    private static final float[]  HOVER_CONF               = { 0.57f, 0.0007f,
-            350f, -6000f, 40000f                          };
-    private static final float[]  LANDING_CONF             = { 0, 0.001f, 600f,
-            -10000f, 10000f                               };
+    private static final float[]  HOVER_CONF               = { 57f, 0.07f,
+            35000f, -600000f, 4000000f                    };
+    private static final float[]  LANDING_CONF             = { 0, 0.1f, 60000f,
+            -1000000f, 1000000f                           };
     private static final float[]  ORIENTATION_CONF         = { 0.5f, 0.0007f,
             200f, -6000f, 40000f                          };
     
@@ -61,7 +61,7 @@ public class FlightConfiguration {
     private static final int      MAX_TILT                 = QuadCopter.MAX_SPEED / 2;
     
     // landings will cut the power once this height is reached
-    private static final int      THROTTLE_OFF_HEIGHT      = 10;
+    private static final float    THROTTLE_OFF_HEIGHT      = 0.1f;
     
     // throttle setting for when we don't know the height anymore
     private static final int      EMERGENCY_DESCENT        = QuadCopter.STOP_SPEED
@@ -73,6 +73,12 @@ public class FlightConfiguration {
     private static final int      NUM_THREADS              = 6;
     
     private static final int      MIN_TIME_GPS             = 100;
+    
+    private static final float    MIN_SPEED                = -100;
+    private static final float    MAX_SPEED                = 100;
+    
+    private static final float    MIN_TILT_ANGLE           = (float) (-Math.PI / 8);
+    private static final float    MAX_TILT_ANGLE           = (float) (Math.PI / 8);
     
     private Map<PinType, Integer> pinMap;
     
@@ -148,7 +154,7 @@ public class FlightConfiguration {
         return MAX_TILT;
     }
     
-    public int getThrottleOffHeight() {
+    public float getThrottleOffHeight() {
         return THROTTLE_OFF_HEIGHT;
     }
     
@@ -174,6 +180,22 @@ public class FlightConfiguration {
     
     public int getMinTimeGps() {
         return MIN_TIME_GPS;
+    }
+    
+    public float getMinSpeed() {
+        return MIN_SPEED;
+    }
+    
+    public float getMaxSpeed() {
+        return MAX_SPEED;
+    }
+    
+    public float getMaxTiltAngle() {
+        return MIN_TILT_ANGLE;
+    }
+    
+    public float getMinTiltAngle() {
+        return MAX_TILT_ANGLE;
     }
     
 }

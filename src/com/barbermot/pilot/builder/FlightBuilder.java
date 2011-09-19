@@ -6,6 +6,7 @@ import ioio.lib.api.exception.ConnectionLostException;
 
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,16 @@ import com.barbermot.pilot.flight.FlightConfiguration;
 import com.barbermot.pilot.flight.FlightControlListener;
 import com.barbermot.pilot.flight.RudderControlListener;
 import com.barbermot.pilot.flight.ThrottleControlListener;
+import com.barbermot.pilot.flight.state.EmergencyLandingState;
+import com.barbermot.pilot.flight.state.FailedState;
+import com.barbermot.pilot.flight.state.FlightState;
+import com.barbermot.pilot.flight.state.GroundState;
+import com.barbermot.pilot.flight.state.HoverState;
+import com.barbermot.pilot.flight.state.LandingState;
+import com.barbermot.pilot.flight.state.ManualControlState;
+import com.barbermot.pilot.flight.state.StabilizedHoverState;
+import com.barbermot.pilot.flight.state.WaypointHoldState;
+import com.barbermot.pilot.flight.state.WaypointTrackState;
 import com.barbermot.pilot.logger.FlightLogger;
 import com.barbermot.pilot.parser.SerialController;
 import com.barbermot.pilot.pid.AutoControl;
@@ -56,6 +67,11 @@ public class FlightBuilder {
     private Map<FlightConfiguration.PinType, Integer> map;
     private IOIO                                      ioio;
     private Uart                                      uart;
+    private AutoControl                               autoThrottle;
+    private AutoControl                               autoAileron;
+    private AutoControl                               autoElevator;
+    private AutoControl                               autoRudder;
+    private EnumMap<FlightState.Type, FlightState<?>> stateMap;
     private List<Future<?>>                           futures;
     
     /**
@@ -79,6 +95,8 @@ public class FlightBuilder {
             this.computer = new FlightComputer();
             this.config = FlightConfiguration.get();
             this.map = config.getPinMap();
+            this.stateMap = new EnumMap<FlightState.Type, FlightState<?>>(
+                    FlightState.Type.class);
             
             buildScheduler();
             buildUart();
@@ -86,6 +104,8 @@ public class FlightBuilder {
             buildQuadCopter();
             buildRemoteControl();
             buildControls();
+            buildFlightStates();
+            buildTransitions();
             buildSignalArray();
             buildLogger();
             buildSerialController();
@@ -142,23 +162,19 @@ public class FlightBuilder {
         
         listener = new ThrottleControlListener();
         listener.setComputer(computer);
-        computer.setAutoThrottle(new AutoControl(listener, "ThrottleControl",
-                false));
+        autoThrottle = new AutoControl(listener, "ThrottleControl", false);
         
         listener = new AileronControlListener();
         listener.setComputer(computer);
-        computer.setAutoAileron(new RadianAutoControl(listener,
-                "AileronControl", false));
+        autoAileron = new RadianAutoControl(listener, "AileronControl", false);
         
         listener = new RudderControlListener();
         listener.setComputer(computer);
-        computer.setAutoRudder(new RadianAutoControl(listener, "RudderControl",
-                false));
+        autoRudder = new RadianAutoControl(listener, "RudderControl", false);
         
         listener = new ElevatorControlListener();
         listener.setComputer(computer);
-        computer.setAutoElevator(new RadianAutoControl(listener,
-                "ElevatorControl", false));
+        autoElevator = new RadianAutoControl(listener, "ElevatorControl", false);
     }
     
     private void buildQuadCopter() throws ConnectionLostException {
@@ -191,6 +207,125 @@ public class FlightBuilder {
         printer = new PrintStream(uart.getOutputStream());
     }
     
+    private void buildFlightStates() throws ConnectionLostException {
+        FlightState.Type type = FlightState.Type.EMERGENCY_LANDING;
+        FlightState<?> state = new EmergencyLandingState();
+        state.setType(type);
+        state.setComputer(computer);
+        stateMap.put(type, state);
+        
+        type = FlightState.Type.FAILED;
+        state = new FailedState();
+        state.setType(type);
+        state.setComputer(computer);
+        stateMap.put(type, state);
+        
+        type = FlightState.Type.GROUND;
+        state = new GroundState();
+        state.setType(type);
+        state.setComputer(computer);
+        stateMap.put(type, state);
+        computer.setState(state);
+        
+        type = FlightState.Type.HOVER;
+        state = new HoverState();
+        state.setType(type);
+        state.setComputer(computer);
+        stateMap.put(type, state);
+        ((HoverState) state).setAutoThrottle(autoThrottle);
+        
+        type = FlightState.Type.LANDING;
+        state = new LandingState();
+        state.setType(type);
+        state.setComputer(computer);
+        stateMap.put(type, state);
+        ((LandingState) state).setAutoThrottle(autoThrottle);
+        
+        type = FlightState.Type.MANUAL_CONTROL;
+        state = new ManualControlState();
+        state.setType(type);
+        state.setComputer(computer);
+        stateMap.put(type, state);
+        
+        type = FlightState.Type.STABILIZED_HOVER;
+        state = new StabilizedHoverState();
+        state.setType(type);
+        state.setComputer(computer);
+        stateMap.put(type, state);
+        ((StabilizedHoverState) state).setAutoThrottle(autoThrottle);
+        ((StabilizedHoverState) state).setAutoElevator(autoElevator);
+        ((StabilizedHoverState) state).setAutoAileron(autoAileron);
+        ((StabilizedHoverState) state).setAutoRudder(autoRudder);
+        
+        type = FlightState.Type.WAYPOINT_HOLD;
+        state = new WaypointHoldState();
+        state.setType(type);
+        state.setComputer(computer);
+        stateMap.put(type, state);
+        
+        type = FlightState.Type.WAYPOINT_TRACK;
+        state = new WaypointTrackState();
+        state.setType(type);
+        state.setComputer(computer);
+        stateMap.put(type, state);
+    }
+    
+    private void buildTransitions() throws ConnectionLostException {
+        FlightState<?> abort = stateMap.get(FlightState.Type.FAILED);
+        for (FlightState<?> state : stateMap.values()) {
+            if (state != abort) {
+                state.addTransition(abort);
+            }
+        }
+        
+        FlightState<?> manual = stateMap.get(FlightState.Type.MANUAL_CONTROL);
+        for (FlightState<?> state : stateMap.values()) {
+            if (state != manual) {
+                state.addTransition(manual);
+            }
+        }
+        
+        // Ground
+        stateMap.get(FlightState.Type.GROUND).addTransition(
+                stateMap.get(FlightState.Type.HOVER));
+        
+        // Hover
+        stateMap.get(FlightState.Type.HOVER).addTransition(
+                stateMap.get(FlightState.Type.HOVER));
+        stateMap.get(FlightState.Type.HOVER).addTransition(
+                stateMap.get(FlightState.Type.STABILIZED_HOVER));
+        stateMap.get(FlightState.Type.HOVER).addTransition(
+                stateMap.get(FlightState.Type.EMERGENCY_LANDING));
+        stateMap.get(FlightState.Type.HOVER).addTransition(
+                stateMap.get(FlightState.Type.LANDING));
+        
+        // Emergency Landing
+        stateMap.get(FlightState.Type.EMERGENCY_LANDING).addTransition(
+                stateMap.get(FlightState.Type.LANDING));
+        
+        // Landing
+        stateMap.get(FlightState.Type.LANDING).addTransition(
+                stateMap.get(FlightState.Type.HOVER));
+        stateMap.get(FlightState.Type.LANDING).addTransition(
+                stateMap.get(FlightState.Type.EMERGENCY_LANDING));
+        stateMap.get(FlightState.Type.LANDING).addTransition(
+                stateMap.get(FlightState.Type.GROUND));
+        
+        // Stabilized Hover
+        stateMap.get(FlightState.Type.STABILIZED_HOVER).addTransition(
+                stateMap.get(FlightState.Type.HOVER));
+        stateMap.get(FlightState.Type.STABILIZED_HOVER).addTransition(
+                stateMap.get(FlightState.Type.STABILIZED_HOVER));
+        stateMap.get(FlightState.Type.STABILIZED_HOVER).addTransition(
+                stateMap.get(FlightState.Type.LANDING));
+        stateMap.get(FlightState.Type.STABILIZED_HOVER).addTransition(
+                stateMap.get(FlightState.Type.EMERGENCY_LANDING));
+        
+        // Manual Control
+        stateMap.get(FlightState.Type.MANUAL_CONTROL).addTransition(
+                stateMap.get(FlightState.Type.HOVER));
+    }
+    
     private void buildSignalArray() throws ConnectionLostException {
         SignalManager signalManager = SignalManager.getManager(ioio,
                 sensorManager, locationManager, scheduler);
@@ -205,7 +340,7 @@ public class FlightBuilder {
                 computer.setLastTimeHeightSignal(time);
             }
         });
-        signal.registerListener(computer.getAutoThrottle());
+        signal.registerListener(autoThrottle);
         
         signal = signalManager.getRollSignal(config.getMinTimeOrientation());
         signal.registerListener(new SignalListener() {
@@ -215,7 +350,7 @@ public class FlightBuilder {
                 computer.setLastTimeOrientationSignal(time);
             }
         });
-        signal.registerListener(computer.getAutoAileron());
+        signal.registerListener(autoAileron);
         
         signal = signalManager.getPitchSignal(config.getMinTimeOrientation());
         signal.registerListener(new SignalListener() {
@@ -225,7 +360,7 @@ public class FlightBuilder {
                 computer.setLastTimeOrientationSignal(time);
             }
         });
-        signal.registerListener(computer.getAutoElevator());
+        signal.registerListener(autoElevator);
         
         signal = signalManager.getYawSignal(config.getMinTimeOrientation());
         signal.registerListener(new SignalListener() {
@@ -235,7 +370,7 @@ public class FlightBuilder {
                 computer.setLastTimeOrientationSignal(time);
             }
         });
-        signal.registerListener(computer.getAutoRudder());
+        signal.registerListener(autoRudder);
         
         signal = signalManager.getGpsAltitudeSignal(config.getMinTimeGps());
         signal.registerListener(new SignalListener() {

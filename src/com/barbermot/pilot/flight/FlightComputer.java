@@ -7,22 +7,21 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import android.util.Log;
 
+import com.barbermot.pilot.flight.state.FlightState;
+import com.barbermot.pilot.flight.state.StateEvent;
 import com.barbermot.pilot.pid.AutoControl;
 import com.barbermot.pilot.quad.QuadCopter;
 import com.barbermot.pilot.rc.RemoteControl;
 
 public class FlightComputer implements Runnable {
     
-    public final String TAG = "FlightComputer";
+    public final String              TAG = "FlightComputer";
     
-    // Flight computer states
-    private enum State {
-        GROUND, HOVER, LANDING, FAILED, EMERGENCY_LANDING, MANUAL_CONTROL, ENGAGING_AUTO_CONTROL
-    };
+    private FlightState<?>           state;
     
     private FlightConfiguration      config;
     
-    // the actual quad copter
+    // the actual QuadCopter
     private QuadCopter               ufo;
     
     // RC signals (from RC controller)
@@ -55,13 +54,19 @@ public class FlightComputer implements Runnable {
     private int                      minTilt;
     private int                      maxTilt;
     
-    private State                    state;
+    private float                    minTiltAngle;
+    private float                    maxTiltAngle;
+    
+    private float                    minSpeed;
+    private float                    maxSpeed;
     
     private float                    height;
     private float                    zeroHeight;
     
     private float                    gpsHeight;
     private float                    zeroGpsHeight;
+    
+    private float                    goalHeight;
     
     private float                    longitudinalDisplacement;
     private float                    lateralDisplacement;
@@ -92,7 +97,11 @@ public class FlightComputer implements Runnable {
         this.minTilt = config.getMinTilt();
         this.maxTilt = config.getMaxTilt();
         
-        this.state = State.GROUND;
+        this.minSpeed = config.getMinSpeed();
+        this.maxSpeed = config.getMinSpeed();
+        
+        this.minTiltAngle = config.getMinTiltAngle();
+        this.maxTiltAngle = config.getMaxTiltAngle();
         
         time = System.currentTimeMillis();
         lastTimeHeightSignal = time;
@@ -103,112 +112,79 @@ public class FlightComputer implements Runnable {
         scheduler.shutdownNow();
     }
     
-    public synchronized void takeoff(float height) {
-        if (state == State.GROUND) {
-            state = State.HOVER;
-            autoThrottle.setConfiguration(hoverConf);
-            autoThrottle.setGoal(height);
-            autoThrottle.engage(true);
-        }
+    public synchronized void takeoff(float height)
+            throws ConnectionLostException {
+        state.transition(new StateEvent<Float>(FlightState.Type.HOVER, height));
     }
     
-    public synchronized void hover(float height) {
-        if (state == State.HOVER || state == State.LANDING
-                || state == State.ENGAGING_AUTO_CONTROL) {
-            state = State.HOVER;
-            autoThrottle.setConfiguration(hoverConf);
-            autoThrottle.setGoal(height);
-            autoThrottle.engage(true);
-        }
+    public synchronized void hover(float height) throws ConnectionLostException {
+        state.transition(new StateEvent<Float>(FlightState.Type.HOVER, height));
     }
     
     public synchronized void ground() throws ConnectionLostException {
-        if (State.LANDING == state) {
-            state = State.GROUND;
-            autoThrottle.engage(false);
-            ufo.throttle(QuadCopter.MIN_SPEED);
-            currentThrottle = QuadCopter.MIN_SPEED;
-        }
+        state.transition(new StateEvent<Void>(FlightState.Type.GROUND, null));
     }
     
-    public synchronized void land() {
-        if (state == State.HOVER || state == State.EMERGENCY_LANDING) {
-            state = State.LANDING;
-            autoThrottle.setConfiguration(landingConf);
-            autoThrottle.setGoal(zeroHeight);
-            autoThrottle.engage(true);
-        }
+    public synchronized void land() throws ConnectionLostException {
+        state.transition(new StateEvent<Float>(FlightState.Type.LANDING, null));
     }
     
     public synchronized void emergencyDescent() throws ConnectionLostException {
-        if (State.FAILED != state && State.GROUND != state
-                && State.EMERGENCY_LANDING != state) {
-            autoThrottle.engage(false);
-            ufo.throttle(config.getEmergencyDescent());
-            currentThrottle = config.getEmergencyDescent();
-            state = State.EMERGENCY_LANDING;
-        }
+        state.transition(new StateEvent<Float>(
+                FlightState.Type.EMERGENCY_LANDING, height));
     }
     
     public synchronized void manualControl() throws ConnectionLostException {
-        if (state != State.MANUAL_CONTROL) {
-            autoThrottle.engage(false);
-            stabilize(false);
-            state = State.MANUAL_CONTROL;
-        }
+        state.transition(new StateEvent<Float>(FlightState.Type.MANUAL_CONTROL,
+                null));
     }
     
     public synchronized void autoControl() throws ConnectionLostException {
-        if (state == State.MANUAL_CONTROL) {
-            state = State.ENGAGING_AUTO_CONTROL;
-            
-            // set rc to allow auto control of throttle
-            char controlMask = rc.getControlMask();
-            controlMask = (char) (controlMask & (~RemoteControl.THROTTLE_MASK));
-            rc.setControlMask(controlMask);
-            
-            // disarm rc, so it doesn't immediately engage again
-            rc.arm(false);
-            
-            // use current throttle setting and height for start values
-            currentThrottle = ufo.read(QuadCopter.Direction.VERTICAL);
-            hover(height);
-        }
+        state.transition(new StateEvent<Float>(FlightState.Type.HOVER, height));
     }
     
     public synchronized void abort() throws ConnectionLostException {
-        state = State.FAILED;
-        autoThrottle.engage(false);
-        stabilize(false);
-        ufo.throttle(QuadCopter.MIN_SPEED);
-        currentThrottle = QuadCopter.MIN_SPEED;
+        state.transition(new StateEvent<Float>(FlightState.Type.FAILED, null));
     }
     
-    public synchronized void stabilize(boolean engage)
+    public synchronized void stabilize(boolean b)
             throws ConnectionLostException {
-        char mask = RemoteControl.AILERON_MASK | RemoteControl.ELEVATOR_MASK
-                | RemoteControl.RUDDER_MASK;
-        char controlMask = rc.getControlMask();
-        
-        if (engage) {
-            controlMask = (char) (controlMask & ~mask);
+        if (b) {
+            state.transition(new StateEvent<Float>(
+                    FlightState.Type.STABILIZED_HOVER, goalHeight));
         } else {
-            controlMask = (char) (controlMask | mask);
-            currentElevator = QuadCopter.STOP_SPEED;
-            currentAileron = QuadCopter.STOP_SPEED;
-            currentRudder = QuadCopter.STOP_SPEED;
+            state.transition(new StateEvent<Float>(FlightState.Type.HOVER,
+                    goalHeight));
         }
-        rc.setControlMask(controlMask);
-        
-        autoElevator.setConfiguration(orientationConf);
-        autoAileron.setConfiguration(orientationConf);
-        autoRudder.setConfiguration(orientationConf);
-        autoElevator.setGoal(0);
-        autoAileron.setGoal(0);
-        autoRudder.setGoal(0);
-        autoElevator.engage(engage);
-        autoAileron.engage(engage);
-        autoRudder.engage(engage);
+    }
+    
+    public synchronized void forward(int speed) {
+        if (state.getType() == FlightState.Type.STABILIZED_HOVER) {
+            float angle = map(speed, minSpeed, maxSpeed, minTiltAngle,
+                    maxTiltAngle);
+            autoElevator.setGoal(angle);
+        }
+    }
+    
+    public synchronized void sideways(int speed) {
+        if (state.getType() == FlightState.Type.STABILIZED_HOVER) {
+            float angle = map(speed, minSpeed, maxSpeed, minTiltAngle,
+                    maxTiltAngle);
+            autoElevator.setGoal(angle);
+        }
+    }
+    
+    public synchronized void rotate(int angle) {
+        if (state.getType() == FlightState.Type.STABILIZED_HOVER) {
+            float radian = map(angle, -180, 180, (float) -Math.PI,
+                    (float) Math.PI);
+            autoRudder.setGoal(radian);
+        }
+    }
+    
+    private float map(float value, float minIn, float maxIn, float minOut,
+            float maxOut) {
+        return ((value - minIn) / (maxIn - minIn)) * (maxOut - minOut) + minOut;
     }
     
     public synchronized void run() {
@@ -223,53 +199,44 @@ public class FlightComputer implements Runnable {
             }
             
             // no height signal from ultra sound try descending
-            if (time - lastTimeHeightSignal > config.getEmergencyDelta()) {
+            if (!hasHeightSignal()) {
                 Log.d(TAG, "Time: " + time + ", last height: "
                         + lastTimeHeightSignal);
                 emergencyDescent();
             }
             
-            // here are specific transitions
-            
-            switch (state) {
-                case GROUND:
-                    // calibration
-                    zeroHeight = height;
-                    zeroGpsHeight = gpsHeight;
-                    break;
-                case HOVER:
-                    // nothing
-                    break;
-                case LANDING:
-                    // turn off throttle when close to ground
-                    if (height <= zeroHeight + config.getThrottleOffHeight()) {
-                        ground();
-                    }
-                    break;
-                case EMERGENCY_LANDING:
-                    // if we have another reading land
-                    if (time - lastTimeHeightSignal < config
-                            .getEmergencyDelta()) {
-                        land();
-                    }
-                    break;
-                case MANUAL_CONTROL:
-                    // nothing
-                    break;
-                case FAILED:
-                    // nothing
-                    break;
-                case ENGAGING_AUTO_CONTROL:
-                    // nothing
-                    break;
-                default:
-                    // this is bad
-                    land();
-                    break;
-            }
+            state.update();
         } catch (ConnectionLostException e) {
             throw new RuntimeException(e);
         }
+    }
+    
+    public boolean hasHeightSignal() {
+        return (time - lastTimeHeightSignal) < config.getEmergencyDelta();
+    }
+    
+    public float[] getHoverConf() {
+        return hoverConf;
+    }
+    
+    public void setHoverConf(float[] hoverConf) {
+        this.hoverConf = hoverConf;
+    }
+    
+    public float[] getLandingConf() {
+        return landingConf;
+    }
+    
+    public void setLandingConf(float[] landingConf) {
+        this.landingConf = landingConf;
+    }
+    
+    public float[] getOrientationConf() {
+        return orientationConf;
+    }
+    
+    public void setOrientationConf(float[] orientationConf) {
+        this.orientationConf = orientationConf;
     }
     
     public void setHoverConfiguration(float[] conf) {
@@ -412,11 +379,11 @@ public class FlightComputer implements Runnable {
         this.rc = rc;
     }
     
-    public State getState() {
+    public FlightState<?> getState() {
         return state;
     }
     
-    public void setState(State state) {
+    public void setState(FlightState<?> state) {
         this.state = state;
     }
     
@@ -492,4 +459,23 @@ public class FlightComputer implements Runnable {
         this.lastTimeGpsHeight = lastTimeGpsHeight;
     }
     
+    public float getZeroHeight() {
+        return zeroHeight;
+    }
+    
+    public void setZeroHeight(float zeroHeight) {
+        this.zeroHeight = zeroHeight;
+    }
+    
+    public float getZeroGpsHeight() {
+        return zeroGpsHeight;
+    }
+    
+    public void setZeroGpsHeight(float zeroGpsHeight) {
+        this.zeroGpsHeight = zeroGpsHeight;
+    }
+    
+    public void setGoalHeight(float height) {
+        this.goalHeight = height;
+    }
 }

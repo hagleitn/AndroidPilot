@@ -22,10 +22,15 @@ class UltrasoundSignal extends IoioSignal {
         // object we take half of the distance traveled.
         // Log.d(TAG, "Microseconds "+microseconds);
         float value = microseconds / 29 / 2;
+        
+        // correction factor for ioio readings
+        value = value * 1.8f;
         if (value > MAX_RELIABLE) {
             throw new MeasurementException();
         }
-        return value;
+        
+        // return meters
+        return value / 100f;
     }
     
     @Override
