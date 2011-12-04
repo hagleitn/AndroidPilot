@@ -6,10 +6,11 @@ import ioio.lib.api.PulseInput.PulseMode;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
 class PulseSignal extends IoioSignal {
     
-    public final String  TAG     = "Signal";
+    public final Logger  logger  = Logger.getLogger("IoioSignal");
     public final float   TIMEOUT = 0.2f;
     
     protected int        pin;
@@ -32,7 +33,7 @@ class PulseSignal extends IoioSignal {
                 } catch (InterruptedException e) {
                     /* retry */
                 } catch (TimeoutException e) {
-                    // Log.i(TAG, "Read on " + pin + " timed out.");
+                    logger.info("Read on " + pin + " timed out.");
                     throw new MeasurementException(e);
                 }
             }

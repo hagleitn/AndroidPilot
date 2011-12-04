@@ -5,8 +5,8 @@ import ioio.lib.api.exception.ConnectionLostException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-
-import android.util.Log;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.barbermot.pilot.flight.FlightComputer;
 
@@ -17,7 +17,7 @@ import com.barbermot.pilot.flight.FlightComputer;
  */
 public class SerialController implements Runnable {
     
-    private static final String TAG = "SerialController";
+    private static final Logger logger = Logger.getLogger("SerialController");
     private long                startSleep;
     private long                sleepTime;
     private Parser              parser;
@@ -40,10 +40,10 @@ public class SerialController implements Runnable {
                 executeCommand();
             }
         } catch (ConnectionLostException e) {
-            Log.d(TAG, "Connection Lost");
+            logger.log(Level.WARNING, "Connection Lost", e);
             throw new RuntimeException(e);
         } catch (IOException e) {
-            Log.d(TAG, e.getStackTrace().toString());
+            logger.log(Level.SEVERE, "IO problem", e);
             throw new RuntimeException(e);
         }
     }
@@ -67,6 +67,7 @@ public class SerialController implements Runnable {
         String cmd = sb.toString().trim();
         if (cmd.length() > 0) {
             printer.println(cmd);
+            logger.info(cmd);
             if (cmd.charAt(0) == 'z' || cmd.charAt(0) == 'Z') {
                 int x = 0;
                 String num = cmd.substring(1);
@@ -76,7 +77,7 @@ public class SerialController implements Runnable {
                     sleepTime = x;
                     startSleep = System.currentTimeMillis();
                 } catch (NumberFormatException e) {
-                    parser.fail();
+                    parser.fail(cmd);
                 }
             } else {
                 parser.doCmd(cmd);

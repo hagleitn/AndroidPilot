@@ -4,11 +4,15 @@ import ioio.lib.api.IOIO;
 import ioio.lib.api.PingPin;
 import ioio.lib.api.exception.ConnectionLostException;
 
-class UltrasoundSignal extends IoioSignal {
+import java.util.logging.Logger;
+
+public class UltrasoundSignal extends IoioSignal {
     
-    public final String     TAG          = "UltrasoundSignal";
-    public static final int MAX_RELIABLE = 367;
-    public PingPin          ping;
+    @SuppressWarnings("unused")
+    private final static Logger logger       = Logger.getLogger("UltrasoundSignal");
+    
+    public static final int     MAX_RELIABLE = 367;
+    public PingPin              ping;
     
     public UltrasoundSignal(IOIO ioio, int pin) throws ConnectionLostException {
         super(ioio);

@@ -3,24 +3,20 @@ package com.barbermot.pilot.flight.state;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.EnumMap;
-
-import android.util.Log;
+import java.util.logging.Logger;
 
 import com.barbermot.pilot.flight.FlightComputer;
 
 public abstract class FlightState<T> {
-    
-    public static final String TAG = "FlightState";
     
     // Flight computer states
     public enum Type {
         GROUND, HOVER, STABILIZED_HOVER, WAYPOINT_HOLD, WAYPOINT_TRACK, LANDING, FAILED, EMERGENCY_LANDING, MANUAL_CONTROL
     };
     
+    protected static final Logger           logger = Logger.getLogger("FlightState");
     private Type                            type;
-    
     protected EnumMap<Type, FlightState<?>> map;
-    
     protected FlightComputer                computer;
     
     public FlightState() {
@@ -29,19 +25,15 @@ public abstract class FlightState<T> {
     
     @SuppressWarnings("unchecked")
     public <D> void transition(StateEvent<D> e) throws ConnectionLostException {
-        Log.d(TAG, "transition: " + type + " -> " + e.type);
+        logger.info("Transition: " + type + " -> " + e.type);
         if (map.containsKey(e.type)) {
             exit();
             FlightState<D> state = (FlightState<D>) map.get(e.type);
-            Log.d(TAG, "Setting state...");
             computer.setState(state);
-            Log.d(TAG, "done setting");
-            Log.d(TAG, "enter: " + e.arg);
             state.enter(e.arg);
         } else {
-            Log.d(TAG, "No such transition.");
+            logger.warning("Illegal state transition requested.");
         }
-        Log.d(TAG, "transition done.");
     }
     
     public void setType(Type type) {

@@ -11,6 +11,8 @@ public class LandingState extends FlightState<Void> {
     
     @Override
     public void enter(Void arg) throws ConnectionLostException {
+        logger.info("Entering landing state");
+        
         autoThrottle.setConfiguration(computer.getLandingConf());
         autoThrottle.setGoal(computer.getZeroHeight());
         autoThrottle.engage(true);

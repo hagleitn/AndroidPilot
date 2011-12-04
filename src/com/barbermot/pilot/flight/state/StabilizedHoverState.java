@@ -46,6 +46,8 @@ public class StabilizedHoverState extends HoverState {
     
     @Override
     public void enter(Float height) throws ConnectionLostException {
+        logger.info("Entering stabilized hover state");
+        
         super.enter(height);
         stabilize(true);
     }

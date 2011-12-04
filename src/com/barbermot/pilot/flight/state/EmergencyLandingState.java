@@ -8,6 +8,8 @@ public class EmergencyLandingState extends FlightState<Void> {
     
     @Override
     public void enter(Void arg) throws ConnectionLostException {
+        logger.info("Entering emergency landing state");
+        
         computer.getUfo().throttle(
                 FlightConfiguration.get().getEmergencyDescent());
         computer.setCurrentThrottle(FlightConfiguration.get()

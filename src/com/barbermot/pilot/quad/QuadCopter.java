@@ -21,9 +21,9 @@ public class QuadCopter {
     public static final int             STOP_SPEED = 0;
     public static final int             MAX_SPEED  = 100;
     
-    private static final int            MIN_SERVO  = 1050; // measured min
+    public static final int             MIN_SERVO  = 1050; // measured min
                                                            // activation
-    private static final int            MAX_SERVO  = 1950; // measured max
+    public static final int             MAX_SERVO  = 1950; // measured max
                                                            // response
                                                            
     private EnumMap<Direction, Servo>   servos;

@@ -10,28 +10,29 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import android.hardware.SensorManager;
 import android.location.LocationManager;
-import android.util.Log;
 
 import com.barbermot.pilot.builder.BuildException;
 import com.barbermot.pilot.builder.FlightBuilder;
 
 public class FlightThread extends Thread {
     
-    public final String     TAG       = "FlightThread";
+    private static final Logger logger    = Logger.getLogger("FlightThread");
     
-    protected IOIO          ioio;
-    private DigitalOutput   led;
-    private boolean         abort     = false;
-    private boolean         connected = true;
+    protected IOIO              ioio;
+    private DigitalOutput       led;
+    private boolean             abort     = false;
+    private boolean             connected = true;
     
-    private SensorManager   sensorManager;
-    private LocationManager locationManager;
+    private SensorManager       sensorManager;
+    private LocationManager     locationManager;
     
-    private FlightComputer  computer;
-    private List<Future<?>> handles;
+    private FlightComputer      computer;
+    private List<Future<?>>     handles;
     
     public FlightThread(SensorManager sensorManager,
             LocationManager locationManager) {
@@ -51,17 +52,19 @@ public class FlightThread extends Thread {
                 }
                 ioio.waitForConnect();
                 connected = true;
+                logger.info("ioio is connected.");
                 setup();
                 while (!abort) {
                     loop();
                 }
                 ioio.disconnect();
+                logger.info("ioio is disconnected.");
             } catch (ConnectionLostException e) {
                 if (abort) {
                     break;
                 }
             } catch (IncompatibilityException e) {
-                Log.e("AbstractIOIOActivity", "Incompatible IOIO firmware", e);
+                logger.log(Level.SEVERE, "Incompatible IOIO firmware", e);
                 // nothing to do - just wait until physical disconnection
                 try {
                     ioio.waitForDisconnect();
@@ -69,7 +72,7 @@ public class FlightThread extends Thread {
                     ioio.disconnect();
                 }
             } catch (Exception e) {
-                Log.e("AbstractIOIOActivity", "Unexpected exception caught", e);
+                logger.log(Level.SEVERE, "Unexpected exception caught", e);
                 ioio.disconnect();
                 break;
             } finally {
@@ -83,6 +86,7 @@ public class FlightThread extends Thread {
     }
     
     public synchronized final void abort() {
+        logger.info("Abort requested.");
         abort = true;
         if (ioio != null) {
             ioio.disconnect();
@@ -102,7 +106,7 @@ public class FlightThread extends Thread {
         } catch (BuildException e) {
             e.printStackTrace();
         }
-        Log.d(TAG, "Setup complete.");
+        logger.info("Setup complete.");
     }
     
     private void loop() throws ConnectionLostException {
@@ -112,11 +116,11 @@ public class FlightThread extends Thread {
             try {
                 f.get();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "Exception caught.", e);
             } catch (ExecutionException e) {
                 Throwable ex = e;
                 while (ex != null) {
-                    ex.printStackTrace();
+                    logger.log(Level.SEVERE, "Exception caught.", ex);
                     ex = ex.getCause();
                 }
             } finally {
@@ -126,10 +130,10 @@ public class FlightThread extends Thread {
         
         try {
             if (!computer.getExecutor().awaitTermination(60, TimeUnit.SECONDS)) {
-                Log.d(TAG, "Timeout while shutting down.");
+                logger.warning("Timeout while shutting down.");
             }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Exception caught.", e);
         }
     }
 }

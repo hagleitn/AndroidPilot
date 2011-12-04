@@ -8,6 +8,8 @@ public class ManualControlState extends FlightState<Void> {
     
     @Override
     public void enter(Void arg) throws ConnectionLostException {
+        logger.info("Entering manual control state");
+        
         // set rc to allow auto control of throttle
         computer.getRc().setControlMask(RemoteControl.FULL_MANUAL);
     }

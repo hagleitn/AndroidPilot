@@ -7,8 +7,7 @@ import ioio.lib.api.PulseInput.PulseMode;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.concurrent.TimeoutException;
-
-import android.util.Log;
+import java.util.logging.Logger;
 
 import com.barbermot.pilot.quad.QuadCopter;
 
@@ -23,33 +22,33 @@ import com.barbermot.pilot.quad.QuadCopter;
  */
 public class RemoteControl implements Runnable {
     
-    public final static String TAG            = "RemoteControl";
+    private final static Logger logger         = Logger.getLogger("RemoteControl");
     
-    public static final char   FULL_MANUAL    = 0xff;
-    public static final char   ELEVATOR_MASK  = 0x01;
-    public static final char   AILERON_MASK   = 0x02;
-    public static final char   THROTTLE_MASK  = 0x04;
-    public static final char   RUDDER_MASK    = 0x08;
-    public static final float  TIMEOUT        = 0.5f;
+    public static final char    FULL_MANUAL    = 0xff;
+    public static final char    ELEVATOR_MASK  = 0x01;
+    public static final char    AILERON_MASK   = 0x02;
+    public static final char    THROTTLE_MASK  = 0x04;
+    public static final char    RUDDER_MASK    = 0x08;
+    public static final float   TIMEOUT        = 0.5f;
     
     // min raw value from pulse in to take over
-    private static final int   THROTTLE_MIN   = 1300;
+    private static final int    THROTTLE_MIN   = 1300;
     
     // if manual throttle comes that close to current setting take over
-    private static final int   THROTTLE_DELTA = 200;
+    private static final int    THROTTLE_DELTA = 200;
     
     // all bits set means manual control for the particular servo
-    private char               controlMask;
+    private char                controlMask;
     
     @SuppressWarnings("unused")
-    private int                gainPin;
+    private int                 gainPin;
     
-    private boolean            armed;
-    private QuadCopter         ufo;
-    private IOIO               ioio;
-    private DigitalOutput      overridePins[];
-    private final static int   SIZE           = 4;
-    private int                throttleMonitorPin;
+    private boolean             armed;
+    private QuadCopter          ufo;
+    private IOIO                ioio;
+    private DigitalOutput       overridePins[];
+    private final static int    SIZE           = 4;
+    private int                 throttleMonitorPin;
     
     public RemoteControl(IOIO ioio, QuadCopter ufo, int aileronPin,
             int rudderPin, int throttlePin, int elevatorPin,
@@ -98,7 +97,7 @@ public class RemoteControl implements Runnable {
                 setControlMask(FULL_MANUAL);
             }
         } catch (TimeoutException e) {
-            Log.i(TAG, "isEngaged timed out.");
+            logger.info("isEngaged timed out.");
         } catch (ConnectionLostException e) {
             throw new RuntimeException(e);
         }

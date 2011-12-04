@@ -4,8 +4,7 @@ import ioio.lib.api.exception.ConnectionLostException;
 
 import java.io.PrintStream;
 import java.util.concurrent.ScheduledExecutorService;
-
-import android.util.Log;
+import java.util.logging.Logger;
 
 import com.barbermot.pilot.flight.state.FlightState;
 import com.barbermot.pilot.flight.state.StateEvent;
@@ -15,7 +14,7 @@ import com.barbermot.pilot.rc.RemoteControl;
 
 public class FlightComputer implements Runnable {
     
-    public final String              TAG = "FlightComputer";
+    private static final Logger      logger = Logger.getLogger("FlightComputer");
     
     private FlightState<?>           state;
     
@@ -195,13 +194,14 @@ public class FlightComputer implements Runnable {
             
             // allow for manual inputs first
             if (rc.getControlMask() == RemoteControl.FULL_MANUAL) {
+                logger.info("Manual control is engaged");
                 manualControl();
             }
             
             // no height signal from ultra sound try descending
             if (!hasHeightSignal()) {
-                Log.d(TAG, "Time: " + time + ", last height: "
-                        + lastTimeHeightSignal);
+                
+                logger.warning("Last height: " + lastTimeHeightSignal);
                 emergencyDescent();
             }
             

@@ -3,21 +3,22 @@ package com.barbermot.pilot.signal;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.EnumMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Looper;
-import android.util.Log;
 
 class GpsSignal implements LocationListener, Runnable {
     
-    public static final String TAG = "GpsSignal";
+    private static final Logger logger = Logger.getLogger("GpsSignal");
     
-    private Location           last;
-    private int                minTime;
-    private Looper             looper;
+    private Location            last;
+    private int                 minTime;
+    private Looper              looper;
     
     public enum Type {
         HEIGHT, LAT, LON, LOCATION
@@ -60,13 +61,12 @@ class GpsSignal implements LocationListener, Runnable {
     public void onLocationChanged(Location location) {
         long time = location.getTime();
         if (last != null) {
-            Log.d(TAG, "Bearing: " + location.bearingTo(last) + ", distance: "
+            logger.info("Bearing: " + location.bearingTo(last) + ", distance: "
                     + location.distanceTo(last));
-            Log.d(TAG,
-                    "Altitude: " + location.getAltitude() + ", lon: "
-                            + location.getLatitude() + ", lat: "
-                            + location.getLongitude());
-            Log.d(TAG, "Accuracy: " + location.getAccuracy());
+            logger.info("Altitude: " + location.getAltitude() + ", lon: "
+                    + location.getLatitude() + ", lat: "
+                    + location.getLongitude());
+            logger.info("Accuracy: " + location.getAccuracy());
         }
         
         last = location;
@@ -79,7 +79,7 @@ class GpsSignal implements LocationListener, Runnable {
             listenerMap.get(Type.LON).update((float) location.getLongitude(),
                     time);
         } catch (ConnectionLostException e) {
-            e.printStackTrace();
+            logger.log(Level.INFO, "Connection lost: ", e);
         }
         
     }

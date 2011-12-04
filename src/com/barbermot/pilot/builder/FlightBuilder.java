@@ -14,6 +14,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import android.hardware.SensorManager;
 import android.location.LocationManager;
@@ -44,6 +45,7 @@ import com.barbermot.pilot.rc.RemoteControl;
 import com.barbermot.pilot.signal.Signal;
 import com.barbermot.pilot.signal.SignalListener;
 import com.barbermot.pilot.signal.SignalManager;
+import com.barbermot.pilot.signal.SignalManagerFactory;
 
 /**
  * FlightBuilder wires up the system. It builds the flight computer instance and
@@ -57,6 +59,7 @@ import com.barbermot.pilot.signal.SignalManager;
  */
 public class FlightBuilder {
     
+    private static final Logger                       logger = Logger.getLogger("FlightBuilder");
     private FlightComputer                            computer;
     private PrintStream                               printer;
     private SensorManager                             sensorManager;
@@ -89,7 +92,6 @@ public class FlightBuilder {
             LocationManager locationManager) throws BuildException {
         try {
             futures = new LinkedList<Future<?>>();
-            this.ioio = ioio;
             this.sensorManager = sensorManager;
             this.locationManager = locationManager;
             this.computer = new FlightComputer();
@@ -97,6 +99,7 @@ public class FlightBuilder {
             this.map = config.getPinMap();
             this.stateMap = new EnumMap<FlightState.Type, FlightState<?>>(
                     FlightState.Type.class);
+            this.ioio = ioio;
             
             buildScheduler();
             buildUart();
@@ -131,11 +134,15 @@ public class FlightBuilder {
     }
     
     private void buildScheduler() {
+        logger.info("Setting up scheduler");
+        
         scheduler = new ScheduledThreadPoolExecutor(config.getNumberThreads());
         computer.setExecutor(scheduler);
     }
     
     private void buildUart() throws ConnectionLostException {
+        logger.info("Setting up UART");
+        
         uart = ioio.openUart(
                 config.getPinMap().get(FlightConfiguration.PinType.RX), config
                         .getPinMap().get(FlightConfiguration.PinType.TX), 9600,
@@ -143,6 +150,8 @@ public class FlightBuilder {
     }
     
     private void buildLogger() {
+        logger.info("Setting up logger");
+        
         FlightLogger logger = new FlightLogger(printer);
         logger.setComputer(computer);
         futures.add(scheduler.scheduleWithFixedDelay(logger, 0,
@@ -150,6 +159,8 @@ public class FlightBuilder {
     }
     
     private void buildSerialController() throws ConnectionLostException {
+        logger.info("Setting up serial controller");
+        
         InputStream in = uart.getInputStream();
         SerialController controller = new SerialController(computer, ';', in,
                 printer);
@@ -157,27 +168,34 @@ public class FlightBuilder {
     }
     
     private void buildControls() {
+        logger.info("Setting up controls");
         
         FlightControlListener listener;
         
         listener = new ThrottleControlListener();
         listener.setComputer(computer);
-        autoThrottle = new AutoControl(listener, "ThrottleControl", false);
+        autoThrottle = new AutoControl(listener,
+                Logger.getLogger("ThrottleControl"));
         
         listener = new AileronControlListener();
         listener.setComputer(computer);
-        autoAileron = new RadianAutoControl(listener, "AileronControl", false);
+        autoAileron = new RadianAutoControl(listener,
+                Logger.getLogger("AileronControl"));
         
         listener = new RudderControlListener();
         listener.setComputer(computer);
-        autoRudder = new RadianAutoControl(listener, "RudderControl", false);
+        autoRudder = new RadianAutoControl(listener,
+                Logger.getLogger("RudderControl"));
         
         listener = new ElevatorControlListener();
         listener.setComputer(computer);
-        autoElevator = new RadianAutoControl(listener, "ElevatorControl", false);
+        autoElevator = new RadianAutoControl(listener,
+                Logger.getLogger("ElevatorControl"));
     }
     
     private void buildQuadCopter() throws ConnectionLostException {
+        logger.info("Setting up Quadcopter");
+        
         ufo = new QuadCopter(ioio,
                 map.get(FlightConfiguration.PinType.AILERON_OUT),
                 map.get(FlightConfiguration.PinType.RUDDER_OUT),
@@ -188,6 +206,8 @@ public class FlightBuilder {
     }
     
     private void buildRemoteControl() throws ConnectionLostException {
+        logger.info("Setting up remote control");
+        
         RemoteControl rc = new RemoteControl(ioio, ufo,
                 map.get(FlightConfiguration.PinType.AILERON_IN),
                 map.get(FlightConfiguration.PinType.RUDDER_IN),
@@ -204,10 +224,14 @@ public class FlightBuilder {
     }
     
     private void buildPrinter() throws ConnectionLostException {
+        logger.info("Setting up printer");
+        
         printer = new PrintStream(uart.getOutputStream());
     }
     
     private void buildFlightStates() throws ConnectionLostException {
+        logger.info("Setting up state machine");
+        
         FlightState.Type type = FlightState.Type.EMERGENCY_LANDING;
         FlightState<?> state = new EmergencyLandingState();
         state.setType(type);
@@ -271,6 +295,8 @@ public class FlightBuilder {
     }
     
     private void buildTransitions() throws ConnectionLostException {
+        logger.info("Setting up transitions");
+        
         FlightState<?> abort = stateMap.get(FlightState.Type.FAILED);
         for (FlightState<?> state : stateMap.values()) {
             if (state != abort) {
@@ -327,7 +353,9 @@ public class FlightBuilder {
     }
     
     private void buildSignalArray() throws ConnectionLostException {
-        SignalManager signalManager = SignalManager.getManager(ioio,
+        logger.info("Setting up signal array");
+        
+        SignalManager signalManager = SignalManagerFactory.getManager(ioio,
                 sensorManager, locationManager, scheduler);
         Signal signal = signalManager.getUltraSoundSignal(
                 config.getMinTimeUltraSound(),

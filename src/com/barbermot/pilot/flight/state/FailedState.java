@@ -8,6 +8,8 @@ public class FailedState extends FlightState<Void> {
     
     @Override
     public void enter(Void arg) throws ConnectionLostException {
+        logger.info("Entering failed state");
+        
         computer.getUfo().throttle(QuadCopter.MIN_SPEED);
         computer.setCurrentThrottle(QuadCopter.MIN_SPEED);
     }

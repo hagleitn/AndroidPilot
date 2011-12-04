@@ -1,7 +1,8 @@
 package com.barbermot.pilot.pid;
 
 import ioio.lib.api.exception.ConnectionLostException;
-import android.util.Log;
+
+import java.util.logging.Logger;
 
 import com.barbermot.pilot.signal.SignalListener;
 
@@ -13,6 +14,7 @@ import com.barbermot.pilot.signal.SignalListener;
  */
 public class AutoControl implements SignalListener {
     
+    protected Logger        logger;
     private ControlListener control;
     private float           proportional;
     private float           integral;
@@ -24,18 +26,16 @@ public class AutoControl implements SignalListener {
     private float           minCummulative;
     private boolean         engaged;
     private boolean         isFirst;
-    private String          TAG;
-    private boolean         log;
     protected float         goal;
     
     public AutoControl(ControlListener control) {
-        this(control, "AutoControl", false);
+        this(control, Logger.getLogger("AutoControl"));
     }
     
-    public AutoControl(ControlListener control, String tag, boolean log) {
+    public AutoControl(ControlListener control, Logger logger) {
         this.control = control;
         this.isFirst = true;
-        this.log = log;
+        this.logger = logger;
     }
     
     @Override
@@ -57,9 +57,7 @@ public class AutoControl implements SignalListener {
             float timeDelta = time - lastTime;
             
             if (timeDelta <= 0) {
-                if (log) {
-                    Log.d(TAG, "Message from the past: " + timeDelta);
-                }
+                logger.info("Message from the past: " + timeDelta);
                 return;
             }
             
@@ -82,13 +80,6 @@ public class AutoControl implements SignalListener {
             dTotal = derivative * (errorDelta / timeDelta);
             
             float gTotal = pTotal + iTotal + dTotal;
-            
-            if (log) {
-                String msg = String.format(
-                        "%s (error = %f, dT = %f): %f + %f + %f = %f", TAG,
-                        error, timeDelta, pTotal, iTotal, dTotal, gTotal);
-                Log.d(TAG, msg);
-            }
             
             lastError = error;
             lastTime = time;
@@ -185,9 +176,7 @@ public class AutoControl implements SignalListener {
      *            boolean to start/stop the pid controller
      */
     public void engage(boolean engaged) {
-        if (log) {
-            Log.d(TAG, "AutoThrottle " + (engaged ? "engaged" : "disengaged"));
-        }
+        logger.info("AutoThrottle " + (engaged ? "engaged" : "disengaged"));
         this.engaged = engaged;
     }
     

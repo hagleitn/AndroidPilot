@@ -8,20 +8,13 @@ public class WaypointTrackState extends FlightState<Waypoint> {
     
     @Override
     public void enter(Waypoint arg) throws ConnectionLostException {
-        // TODO Auto-generated method stub
-        
+        logger.info("Entering waypoint track state");
     }
     
     @Override
-    public void exit() throws ConnectionLostException {
-        // TODO Auto-generated method stub
-        
-    }
+    public void exit() throws ConnectionLostException {}
     
     @Override
-    public void update() throws ConnectionLostException {
-        // TODO Auto-generated method stub
-        
-    }
+    public void update() throws ConnectionLostException {}
     
 }

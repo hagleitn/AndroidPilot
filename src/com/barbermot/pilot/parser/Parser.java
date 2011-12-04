@@ -4,12 +4,14 @@ import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.logging.Logger;
 
 import com.barbermot.pilot.flight.FlightComputer;
 
 public class Parser {
     
-    private FlightComputer computer;
+    private static final Logger logger = Logger.getLogger("Parser");
+    private FlightComputer      computer;
     
     public Parser(FlightComputer computer) {
         this.computer = computer;
@@ -17,31 +19,32 @@ public class Parser {
     
     public void doCmd(String cmd) throws ConnectionLostException {
         int x = 0;
+        float f = 0;
         Scanner scanner = new Scanner(cmd);
         
         if (scanner.hasNext(".")) {
             char c = scanner.next(".").charAt(0);
             switch (c) {
                 
-                // Command "H <int>" hovers the thing at altitude <int>
+                // Command "H <float>" hovers the thing at altitude <float>
                 case 'h':
                 case 'H':
-                    if (scanner.hasNextInt()) {
-                        x = scanner.nextInt();
-                        computer.hover(x);
+                    if (scanner.hasNextFloat()) {
+                        f = scanner.nextFloat();
+                        computer.hover(f);
                     } else {
-                        fail();
+                        fail(cmd);
                     }
                     break;
                 
-                // Command "T <int>" takeoff and start hovering at <int>
+                // Command "T <float>" takeoff and start hovering at <float>
                 case 't':
                 case 'T':
-                    if (scanner.hasNextInt()) {
-                        x = scanner.nextInt();
-                        computer.takeoff(x);
+                    if (scanner.hasNextFloat()) {
+                        f = scanner.nextFloat();
+                        computer.takeoff(f);
                     } else {
-                        fail();
+                        fail(cmd);
                     }
                     break;
                 
@@ -71,7 +74,7 @@ public class Parser {
                         min = scanner.nextFloat();
                         max = scanner.nextFloat();
                     } catch (NoSuchElementException e) {
-                        fail();
+                        fail(cmd);
                         return;
                     }
                     
@@ -88,7 +91,7 @@ public class Parser {
                             computer.setStabilizerConfiguration(conf);
                             break;
                         default:
-                            fail();
+                            fail(cmd);
                             break;
                     }
                 }
@@ -107,7 +110,7 @@ public class Parser {
                         x = scanner.nextInt();
                         computer.stabilize(x == 0 ? false : true);
                     } else {
-                        fail();
+                        fail(cmd);
                     }
                     break;
                 
@@ -118,7 +121,7 @@ public class Parser {
                         x = scanner.nextInt();
                         computer.setMinThrottle(x);
                     } else {
-                        fail();
+                        fail(cmd);
                     }
                     break;
                 
@@ -129,7 +132,7 @@ public class Parser {
                         x = scanner.nextInt();
                         computer.setMaxThrottle(x);
                     } else {
-                        fail();
+                        fail(cmd);
                     }
                     break;
                 
@@ -139,12 +142,14 @@ public class Parser {
                     computer.abort();
                     break;
                 default:
-                    fail();
+                    fail(cmd);
                     break;
             }
         }
         
     }
     
-    public void fail() {}
+    public void fail(String cmd) {
+        logger.warning("Failed to execute command:" + cmd);
+    }
 }

@@ -1,13 +1,15 @@
 package com.barbermot.pilot.pid;
 
+import java.util.logging.Logger;
+
 public class RadianAutoControl extends AutoControl {
     
     public RadianAutoControl(ControlListener control) {
         super(control);
     }
     
-    public RadianAutoControl(ControlListener control, String tag, boolean log) {
-        super(control, tag, log);
+    public RadianAutoControl(ControlListener control, Logger logger) {
+        super(control, logger);
     }
     
     @Override

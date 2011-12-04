@@ -28,7 +28,7 @@ public class FlightLogger implements Runnable {
     @Override
     public void run() {
         String str = String
-                .format("st: %s\tms: %d\trc: %h\nh: %f\tdy: %f\tdx: %f\tdz: %f\ngh: %f\nt: %d\te: %d\ta: %d\tr: %d",
+                .format("st: %s\tms: %d\trc: %h\th: %f\tdy: %f\tdx: %f\tdz: %f\tgh: %f\tt: %d\te: %d\ta: %d\tr: %d",
                         computer.getState().getType(), computer.getTime(),
                         computer.getRc().getControlMask(),
                         computer.getHeight(),
@@ -39,7 +39,6 @@ public class FlightLogger implements Runnable {
                         computer.getCurrentElevator(),
                         computer.getCurrentAileron(),
                         computer.getCurrentRudder());
-        // Log.d(TAG, str);
         printer.println(str);
     }
 }

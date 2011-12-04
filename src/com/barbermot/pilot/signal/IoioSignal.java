@@ -2,12 +2,13 @@ package com.barbermot.pilot.signal;
 
 import ioio.lib.api.IOIO;
 import ioio.lib.api.exception.ConnectionLostException;
-import android.util.Log;
+
+import java.util.logging.Logger;
 
 public abstract class IoioSignal extends Signal implements Runnable {
     
     protected IOIO                ioio;
-    protected final static String TAG = "Signal";
+    protected final static Logger logger = Logger.getLogger("Signal");
     private long                  time;
     private float                 measurement;
     
@@ -37,9 +38,9 @@ public abstract class IoioSignal extends Signal implements Runnable {
             
             notifyListeners(measurement, time);
         } catch (MeasurementException e) {
-            Log.d(TAG, "Failed to take measurement");
+            logger.info("Failed to take measurement");
         } catch (ConnectionLostException e) {
-            Log.d(TAG, "Connection lost");
+            logger.info("Connection lost");
             throw new RuntimeException(e);
         }
     }

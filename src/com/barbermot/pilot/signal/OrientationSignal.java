@@ -3,6 +3,7 @@ package com.barbermot.pilot.signal;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.EnumMap;
+import java.util.logging.Logger;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -11,16 +12,17 @@ import android.hardware.SensorManager;
 
 class OrientationSignal implements SensorEventListener {
     
-    public static final String TAG = "OrientationSignal";
+    @SuppressWarnings("unused")
+    private static final Logger logger = Logger.getLogger("OrientationSignal");
     
-    private float              yaw;
-    private float              roll;
-    private float              pitch;
-    float[]                    orientation;
-    private float[]            accel;
-    private float[]            magnetic;
-    private float[]            R;
-    private float[]            I;
+    private float               yaw;
+    private float               roll;
+    private float               pitch;
+    float[]                     orientation;
+    private float[]             accel;
+    private float[]             magnetic;
+    private float[]             R;
+    private float[]             I;
     
     public enum Type {
         YAW, ROLL, PITCH
