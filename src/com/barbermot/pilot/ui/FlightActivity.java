@@ -1,5 +1,7 @@
 package com.barbermot.pilot.ui;
 
+import java.util.logging.Logger;
+
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
@@ -13,7 +15,8 @@ import com.barbermot.pilot.R;
 
 public class FlightActivity extends Activity {
     
-    public final String TAG = "FlightActivity";
+    @SuppressWarnings("unused")
+    private static final Logger logger = Logger.getLogger("FlightActivity");
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
