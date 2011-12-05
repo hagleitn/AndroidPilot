@@ -15,6 +15,7 @@ public class PhysicsEngine {
     private double      msl;
     private int         lastThrottle;
     private long        lastMillis;
+    private long        baseMillis;
     private double      acceleration;
     private double      speed;
     private double      copterHeight = 0.1;
@@ -39,6 +40,7 @@ public class PhysicsEngine {
         }
         
         lastMillis = System.currentTimeMillis();
+        baseMillis = lastMillis;
         msl = copterHeight;
         rand = new Random();
         config = FlightConfiguration.get();
@@ -66,8 +68,8 @@ public class PhysicsEngine {
             speed = 0;
         }
         lastMillis = time;
-        String msg = String.format("%d\t%f\t%f\t%f\t%f\t%d\n", lastMillis,
-                tDelta, acceleration, speed, msl, lastThrottle);
+        String msg = String.format("%d\t%f\t%f\t%f\t%f\t%d\n", lastMillis
+                - baseMillis, tDelta, acceleration, speed, msl, lastThrottle);
         logger.info(msg);
     }
     

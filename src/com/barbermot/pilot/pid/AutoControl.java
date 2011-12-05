@@ -57,7 +57,7 @@ public class AutoControl implements SignalListener {
             float timeDelta = time - lastTime;
             
             if (timeDelta <= 0) {
-                logger.info("Message from the past: " + timeDelta);
+                logger.fine("Message from the past: " + timeDelta);
                 return;
             }
             

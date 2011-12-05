@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,26 +19,35 @@ import android.location.LocationManager;
 
 import com.barbermot.pilot.builder.BuildException;
 import com.barbermot.pilot.builder.FlightBuilder;
+import com.barbermot.pilot.util.AndroidHandler;
 
 public class FlightThread extends Thread {
     
-    private static final Logger logger    = Logger.getLogger("FlightThread");
+    private Logger          logger;
     
-    protected IOIO              ioio;
-    private DigitalOutput       led;
-    private boolean             abort     = false;
-    private boolean             connected = true;
+    protected IOIO          ioio;
+    private DigitalOutput   led;
+    private boolean         abort     = false;
+    private boolean         connected = true;
     
-    private SensorManager       sensorManager;
-    private LocationManager     locationManager;
+    private SensorManager   sensorManager;
+    private LocationManager locationManager;
     
-    private FlightComputer      computer;
-    private List<Future<?>>     handles;
+    private FlightComputer  computer;
+    private List<Future<?>> handles;
     
     public FlightThread(SensorManager sensorManager,
             LocationManager locationManager) {
         this.sensorManager = sensorManager;
         this.locationManager = locationManager;
+        
+        // Configure logger here
+        logger = Logger.getLogger("");
+        for (Handler h : logger.getHandlers()) {
+            logger.removeHandler(h);
+        }
+        logger.addHandler(new AndroidHandler());
+        logger = Logger.getLogger("FlightThread");
     }
     
     @Override
