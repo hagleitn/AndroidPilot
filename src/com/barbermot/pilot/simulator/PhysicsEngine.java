@@ -11,53 +11,136 @@ import com.barbermot.pilot.util.PassThruFormatter;
 
 public class PhysicsEngine {
     
-    private Logger      logger;
-    private double      msl;
-    private int         lastThrottle;
-    private long        lastMillis;
-    private long        baseMillis;
-    private double      acceleration;
-    private double      speed;
-    private double      copterHeight = 0.1;
-    private double      multiplier   = 10 / 93.0;
-    private double      g            = 10;
-    Random              rand;
-    FlightConfiguration config;
-    int                 throttlePin;
-    int                 ultrasoundPin;
-    private double      deviation    = 0.01;
+    private Logger       heightLogger;
+    
+    private double       msl;
+    private int          lastThrottle;
+    private long         lastMillisHeight;
+    private long         baseMillis;
+    private double       acceleration;
+    private double       speed;
+    
+    private Angle        yaw;
+    private Angle        roll;
+    private Angle        pitch;
+    
+    private final double copterHeight         = 0.1;
+    private final double rotationalMultiplier = (2 * Math.PI) / 35.0;
+    private final double g                    = 10;
+    private final double multiplier           = g / 93.0;
+    
+    Random               rand;
+    FlightConfiguration  config;
+    int                  throttlePin;
+    int                  rudderPin;
+    int                  aileronPin;
+    int                  elevatorPin;
+    int                  ultrasoundPin;
+    private double       deviation            = 0.01;
+    
+    class Angle {
+        
+        long   lastControlInput = 0;
+        long   lastUpdateTime   = 0;
+        double value;
+        Logger angleLogger;
+        
+        Angle(Logger angleLogger, double value) {
+            this.angleLogger = angleLogger;
+            this.value = value;
+        }
+        
+        void updateDirection() {
+            long time = System.currentTimeMillis();
+            double tDelta = (time - lastUpdateTime) / 1000.0;
+            if (tDelta == 0) {
+                return;
+            }
+            
+            // no changes on the ground;
+            if (msl > copterHeight) {
+                // f = thr*const-g
+                double rotationalSpeed = rotationalMultiplier
+                        * ((double) lastControlInput);
+                
+                value += tDelta * rotationalSpeed;
+                while (value >= Math.PI) {
+                    value -= 2 * Math.PI;
+                }
+                
+                while (value < -Math.PI) {
+                    value += 2 * Math.PI;
+                }
+                
+                String msg = String.format("%d\t%f\t%f\t%f\t%d\n", time
+                        - baseMillis, tDelta, rotationalSpeed, value,
+                        lastControlInput);
+                angleLogger.info(msg);
+            }
+            lastUpdateTime = time;
+        }
+    }
     
     public PhysicsEngine() {
-        logger = Logger.getLogger("PhysicsEngine");
+        heightLogger = Logger.getLogger("Height");
+        Logger yawLogger = Logger.getLogger("Yaw");
+        Logger rollLogger = Logger.getLogger("Roll");
+        Logger pitchLogger = Logger.getLogger("Pitch");
         
         try {
-            FileHandler handler = new FileHandler("/tmp/data%u.log");
+            FileHandler handler = new FileHandler("/tmp/height%u.log");
             handler.setFormatter(new PassThruFormatter());
             handler.setFilter(null);
-            logger.addHandler(handler);
+            heightLogger.addHandler(handler);
+            
+            handler = new FileHandler("/tmp/yaw%u.log");
+            handler.setFormatter(new PassThruFormatter());
+            handler.setFilter(null);
+            yawLogger.addHandler(handler);
+            
+            handler = new FileHandler("/tmp/roll%u.log");
+            handler.setFormatter(new PassThruFormatter());
+            handler.setFilter(null);
+            rollLogger.addHandler(handler);
+            
+            handler = new FileHandler("/tmp/pitch%u.log");
+            handler.setFormatter(new PassThruFormatter());
+            handler.setFilter(null);
+            pitchLogger.addHandler(handler);
         } catch (IOException e) {
             e.printStackTrace();
         }
         
-        lastMillis = System.currentTimeMillis();
-        baseMillis = lastMillis;
+        baseMillis = lastMillisHeight = System.currentTimeMillis();
         msl = copterHeight;
+        
+        yaw = new Angle(yawLogger, -Math.PI);
+        roll = new Angle(rollLogger, 0.2);
+        pitch = new Angle(pitchLogger, 0.2);
+        
         rand = new Random();
         config = FlightConfiguration.get();
         throttlePin = config.getPinMap().get(
                 FlightConfiguration.PinType.THROTTLE_OUT);
+        rudderPin = config.getPinMap().get(
+                FlightConfiguration.PinType.RUDDER_OUT);
+        aileronPin = config.getPinMap().get(
+                FlightConfiguration.PinType.AILERON_OUT);
+        elevatorPin = config.getPinMap().get(
+                FlightConfiguration.PinType.ELEVATOR_OUT);
         ultrasoundPin = config.getPinMap().get(
                 FlightConfiguration.PinType.ULTRA_SOUND);
     }
     
     private void updateHeight() {
         long time = System.currentTimeMillis();
-        double tDelta = (time - lastMillis) / 1000.0;
+        double tDelta = (time - lastMillisHeight) / 1000.0;
         
         // f = thr*const-g
         acceleration = (multiplier * (lastThrottle + 75) - g);
-        if (msl <= 0.1 && acceleration < 0) {
+        if (msl <= copterHeight && acceleration < 0) {
             acceleration = 0;
+            speed = 0;
         }
         
         speed += tDelta * acceleration;
@@ -67,10 +150,11 @@ public class PhysicsEngine {
             msl = copterHeight;
             speed = 0;
         }
-        lastMillis = time;
-        String msg = String.format("%d\t%f\t%f\t%f\t%f\t%d\n", lastMillis
+        
+        lastMillisHeight = time;
+        String msg = String.format("%d\t%f\t%f\t%f\t%f\t%d\n", lastMillisHeight
                 - baseMillis, tDelta, acceleration, speed, msl, lastThrottle);
-        logger.info(msg);
+        heightLogger.info(msg);
     }
     
     private double normalDistribution() {
@@ -94,6 +178,21 @@ public class PhysicsEngine {
             lastThrottle = mapReverse(pulseWidthUs, QuadCopter.MIN_SPEED,
                     QuadCopter.MAX_SPEED, QuadCopter.MIN_SERVO,
                     QuadCopter.MAX_SERVO);
+        } else if (pin == rudderPin) {
+            yaw.updateDirection();
+            yaw.lastControlInput = mapReverse(pulseWidthUs,
+                    QuadCopter.MIN_SPEED, QuadCopter.MAX_SPEED,
+                    QuadCopter.MIN_SERVO, QuadCopter.MAX_SERVO);
+        } else if (pin == aileronPin) {
+            roll.updateDirection();
+            roll.lastControlInput = mapReverse(pulseWidthUs,
+                    QuadCopter.MIN_SPEED, QuadCopter.MAX_SPEED,
+                    QuadCopter.MIN_SERVO, QuadCopter.MAX_SERVO);
+        } else if (pin == elevatorPin) {
+            pitch.updateDirection();
+            pitch.lastControlInput = mapReverse(pulseWidthUs,
+                    QuadCopter.MIN_SPEED, QuadCopter.MAX_SPEED,
+                    QuadCopter.MIN_SERVO, QuadCopter.MAX_SERVO);
         }
     }
     
@@ -119,16 +218,19 @@ public class PhysicsEngine {
         return System.currentTimeMillis();
     }
     
-    public float getYawAngle() {
-        return 4;
+    public synchronized float getYawAngle() {
+        yaw.updateDirection();
+        return (float) yaw.value;
     }
     
     public float getRollAngle() {
-        return 5;
+        roll.updateDirection();
+        return (float) roll.value;
     }
     
     public float getPitchAngle() {
-        return 6;
+        pitch.updateDirection();
+        return (float) pitch.value;
     }
     
 }

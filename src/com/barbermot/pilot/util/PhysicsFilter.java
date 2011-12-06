@@ -7,7 +7,10 @@ public class PhysicsFilter implements Filter {
     
     @Override
     public boolean isLoggable(LogRecord record) {
-        if (record.getLoggerName().equals("PhysicsEngine")) {
+        if (record.getLoggerName().equals("Height")
+                || record.getLoggerName().equals("Yaw")
+                || record.getLoggerName().equals("Pitch")
+                || record.getLoggerName().equals("Roll")) {
             return false;
         }
         return true;

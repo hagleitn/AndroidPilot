@@ -85,10 +85,10 @@ class OrientationSignal implements SensorEventListener {
         SensorManager.getRotationMatrix(R, I, accel, magnetic);
         SensorManager.getOrientation(R, orientation);
         
-        final float rad2deg = (float) (180.0f / Math.PI);
-        yaw = orientation[0] * rad2deg;
-        pitch = orientation[1] * rad2deg;
-        roll = orientation[2] * rad2deg;
+        // final float rad2deg = (float) (180.0f / Math.PI);
+        yaw = orientation[0]; // * rad2deg;
+        pitch = orientation[1]; // * rad2deg;
+        roll = orientation[2]; // * rad2deg;
         
         try {
             listenerMap.get(Type.YAW).update(yaw, event.timestamp);

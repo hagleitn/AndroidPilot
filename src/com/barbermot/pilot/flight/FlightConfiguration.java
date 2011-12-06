@@ -35,8 +35,8 @@ public class FlightConfiguration {
             35000f, -600000f, 4000000f                    };
     private static final float[]  LANDING_CONF             = { 0, 0.1f, 60000f,
             -1000000f, 1000000f                           };
-    private static final float[]  ORIENTATION_CONF         = { 0.5f, 0.0007f,
-            200f, -6000f, 40000f                          };
+    private static final float[]  ORIENTATION_CONF         = { 50f, 0.07f,
+            350f, -600f, 400f                             };
     
     // delay between readings of the ultra sound module
     private static final int      MIN_TIME_ULTRA_SOUND     = 100;

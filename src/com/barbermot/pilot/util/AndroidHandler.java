@@ -24,15 +24,27 @@ public class AndroidHandler extends Handler {
         // String tag = "barbermot";
         String msg = arg0.getMessage();
         Level level = arg0.getLevel();
-        
-        if (level == Level.INFO) {
-            Log.i(tag, msg);
-        } else if (level == Level.SEVERE) {
-            Log.e(tag, msg);
-        } else if (level == Level.WARNING) {
-            Log.w(tag, msg);
+        Throwable t = arg0.getThrown();
+        if (t != null) {
+            if (level == Level.INFO) {
+                Log.i(tag, msg, t);
+            } else if (level == Level.SEVERE) {
+                Log.e(tag, msg, t);
+            } else if (level == Level.WARNING) {
+                Log.w(tag, msg, t);
+            } else {
+                Log.d(tag, msg, t);
+            }
         } else {
-            Log.d(tag, msg);
+            if (level == Level.INFO) {
+                Log.i(tag, msg);
+            } else if (level == Level.SEVERE) {
+                Log.e(tag, msg);
+            } else if (level == Level.WARNING) {
+                Log.w(tag, msg);
+            } else {
+                Log.d(tag, msg);
+            }
         }
     }
 }
