@@ -402,6 +402,9 @@ public class FlightBuilder {
         // Manual Control
         stateMap.get(FlightState.Type.MANUAL_CONTROL).addTransition(
                 stateMap.get(FlightState.Type.HOVER));
+        stateMap.get(FlightState.Type.MANUAL_CONTROL).addTransition(
+                stateMap.get(FlightState.Type.LANDING));
+        
     }
     
     private void buildSignalArray() throws ConnectionLostException {

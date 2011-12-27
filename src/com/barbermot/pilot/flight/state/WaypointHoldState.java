@@ -4,6 +4,7 @@ import ioio.lib.api.exception.ConnectionLostException;
 
 import com.barbermot.pilot.flight.Waypoint;
 import com.barbermot.pilot.pid.AutoControl;
+import com.barbermot.pilot.rc.RemoteControl;
 
 public class WaypointHoldState extends FlightState<Waypoint> {
     
@@ -15,9 +16,24 @@ public class WaypointHoldState extends FlightState<Waypoint> {
     
     private boolean     gpsActive;
     
+    private void switchAutoControl(boolean on) throws ConnectionLostException {
+        char mask = RemoteControl.AILERON_MASK | RemoteControl.ELEVATOR_MASK
+                | RemoteControl.RUDDER_MASK;
+        char controlMask = computer.getRc().getControlMask();
+        
+        if (on) {
+            controlMask = (char) (controlMask & ~mask);
+        } else {
+            controlMask = (char) (controlMask | mask);
+        }
+        computer.getRc().setControlMask(controlMask);
+    }
+    
     @Override
     public void enter(Waypoint arg) throws ConnectionLostException {
         logger.info("Entering waypoint hold state");
+        
+        switchAutoControl(true);
         
         autoUltraSoundThrottle.setConfiguration(computer.getHoverConf());
         autoUltraSoundThrottle.setGoal(arg.altitude);
@@ -60,6 +76,8 @@ public class WaypointHoldState extends FlightState<Waypoint> {
         computer.setAutoRudder(null);
         computer.setAutoElevator(null);
         computer.setAutoAileron(null);
+        
+        switchAutoControl(false);
     }
     
     @Override

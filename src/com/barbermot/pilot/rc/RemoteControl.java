@@ -61,10 +61,10 @@ public class RemoteControl implements Runnable {
         
         overridePins = new DigitalOutput[SIZE];
         
-        overridePins[0] = ioio.openDigitalOutput(aileronPin);
-        overridePins[1] = ioio.openDigitalOutput(rudderPin);
+        overridePins[0] = ioio.openDigitalOutput(elevatorPin);
+        overridePins[1] = ioio.openDigitalOutput(aileronPin);
         overridePins[2] = ioio.openDigitalOutput(throttlePin);
-        overridePins[3] = ioio.openDigitalOutput(elevatorPin);
+        overridePins[3] = ioio.openDigitalOutput(rudderPin);
         this.setControlMask(FULL_MANUAL);
     }
     
@@ -93,7 +93,7 @@ public class RemoteControl implements Runnable {
     @Override
     public void run() {
         try {
-            if (controlMask == FULL_MANUAL || isEngaged()) {
+            if (controlMask != FULL_MANUAL && isEngaged()) {
                 setControlMask(FULL_MANUAL);
             }
         } catch (TimeoutException e) {
@@ -117,11 +117,15 @@ public class RemoteControl implements Runnable {
      */
     public synchronized void setControlMask(char mask)
             throws ConnectionLostException {
+        String maskString = String.format("%h", mask);
+        logger.info("Control mask: " + maskString);
+        
         controlMask = mask;
         mask = 0x1;
         
         for (int i = 0; i < SIZE; ++i) {
             overridePins[i].write((controlMask & mask) != 0);
+            mask = (char) (mask << 1);
         }
     }
     

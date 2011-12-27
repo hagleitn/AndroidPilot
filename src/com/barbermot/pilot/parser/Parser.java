@@ -26,7 +26,21 @@ public class Parser {
             char c = scanner.next(".").charAt(0);
             switch (c) {
                 
-                // Command r <int> rotates to a magnetic direction (-180, 180)
+                // Command o <string> sets the control mask of the RC
+                case 'o':
+                case 'O':
+                    if (scanner.hasNext()) {
+                        try {
+                            int mask = Integer.valueOf(scanner.next(), 16);
+                            computer.getRc().setControlMask((char) mask);
+                        } catch (NumberFormatException nfe) {}
+                    } else {
+                        fail(cmd);
+                    }
+                    break;
+                
+                // Command r <int> rotates to a magnetic direction (-180,
+                // 180)
                 case 'r':
                 case 'R':
                     if (scanner.hasNextInt()) {
@@ -149,6 +163,12 @@ public class Parser {
                             break;
                     }
                 }
+                    break;
+                
+                // Disengage auto throttle
+                case 'd':
+                case 'D':
+                    computer.manualControl();
                     break;
                 
                 // (Re-)Engage auto throttle

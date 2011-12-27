@@ -176,7 +176,7 @@ public class FlightComputer implements Runnable {
     }
     
     public synchronized void autoControl() throws ConnectionLostException {
-        state.transition(new StateEvent<Float>(FlightState.Type.HOVER, height));
+        state.transition(new StateEvent<Void>(FlightState.Type.LANDING, null));
     }
     
     public synchronized void abort() throws ConnectionLostException {
@@ -246,7 +246,8 @@ public class FlightComputer implements Runnable {
             // the following state transitions can origin in any state
             
             // allow for manual inputs first
-            if (rc.getControlMask() == RemoteControl.FULL_MANUAL) {
+            if (rc.getControlMask() == RemoteControl.FULL_MANUAL
+                    && state.getType() != FlightState.Type.MANUAL_CONTROL) {
                 logger.info("Manual control is engaged");
                 manualControl();
             }

@@ -37,6 +37,7 @@ public class PhysicsEngine {
     int                  elevatorPin;
     int                  ultrasoundPin;
     private double       deviation            = 0.01;
+    private double       gpsDeviation         = 1;
     
     class Angle {
         
@@ -220,7 +221,8 @@ public class PhysicsEngine {
     
     public float getGpsAlitude() {
         updateHeight();
-        return (float) Math.round(msl);
+        float deviation = (float) (gpsDeviation * normalDistribution());
+        return (float) Math.round(msl + deviation);
     }
     
     public long getTime() {
