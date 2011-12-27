@@ -31,9 +31,9 @@ public class StabilizedHoverState extends HoverState {
         autoAileron.setConfiguration(computer.getOrientationConf());
         autoRudder.setConfiguration(computer.getOrientationConf());
         
-        autoElevator.setGoal(0);
-        autoAileron.setGoal(0);
-        autoRudder.setGoal(0);
+        autoElevator.setGoal(computer.getZeroLongitudinalDisplacement());
+        autoAileron.setGoal(computer.getZeroLateralDisplacement());
+        autoRudder.setGoal(/* magnetic north */0);
         
         autoElevator.engage(engage);
         autoAileron.engage(engage);

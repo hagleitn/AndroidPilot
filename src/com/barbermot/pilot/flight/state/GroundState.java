@@ -19,10 +19,6 @@ public class GroundState extends FlightState<Void> {
     
     @Override
     public void update() {
-        // calibration
-        computer.setZeroHeight(computer.getHeight());
-        computer.setZeroGpsHeight(computer.getGpsHeight());
-        computer.setZeroLatitude(computer.getLatitude());
-        computer.setZeroLongitude(computer.getLongitude());
+        computer.calibrate();
     }
 }

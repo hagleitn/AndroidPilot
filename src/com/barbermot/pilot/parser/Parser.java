@@ -26,6 +26,46 @@ public class Parser {
             char c = scanner.next(".").charAt(0);
             switch (c) {
                 
+                // Command r <int> rotates to a magnetic direction (-180, 180)
+                case 'r':
+                case 'R':
+                    if (scanner.hasNextInt()) {
+                        x = scanner.nextInt();
+                        computer.rotate(x);
+                    } else {
+                        fail(cmd);
+                    }
+                    break;
+                
+                // Command f <int> goes forward/backward in stabilized hover
+                case 'f':
+                case 'F':
+                    if (scanner.hasNextInt()) {
+                        x = scanner.nextInt();
+                        computer.forward(x);
+                    } else {
+                        fail(cmd);
+                    }
+                    break;
+                
+                // Command g <int> goes left/right in stabilized hover
+                case 'g':
+                case 'G':
+                    if (scanner.hasNextInt()) {
+                        x = scanner.nextInt();
+                        computer.sideways(x);
+                    } else {
+                        fail(cmd);
+                    }
+                    break;
+                
+                // Command b resets the zero lateral/longitudal angle to the
+                // current angles
+                case 'b':
+                case 'B':
+                    computer.balance();
+                    break;
+                
                 // Command "W <float>" holds the waypoint at altitude <float>
                 case 'w':
                 case 'W':

@@ -81,8 +81,8 @@ public class FlightConfiguration {
     private static final float    MIN_SPEED                = -100;
     private static final float    MAX_SPEED                = 100;
     
-    private static final float    MIN_TILT_ANGLE           = (float) (-Math.PI / 8);
-    private static final float    MAX_TILT_ANGLE           = (float) (Math.PI / 8);
+    private static final float    MIN_TILT_ANGLE           = (float) (-Math.PI / 4f);
+    private static final float    MAX_TILT_ANGLE           = (float) (Math.PI / 4f);
     
     private Map<PinType, Integer> pinMap;
     
@@ -203,11 +203,11 @@ public class FlightConfiguration {
     }
     
     public float getMaxTiltAngle() {
-        return MIN_TILT_ANGLE;
+        return MAX_TILT_ANGLE;
     }
     
     public float getMinTiltAngle() {
-        return MAX_TILT_ANGLE;
+        return MIN_TILT_ANGLE;
     }
     
 }
