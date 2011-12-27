@@ -39,6 +39,7 @@ import com.barbermot.pilot.flight.state.WaypointTrackState;
 import com.barbermot.pilot.logger.FlightLogger;
 import com.barbermot.pilot.parser.SerialController;
 import com.barbermot.pilot.pid.AutoControl;
+import com.barbermot.pilot.pid.GpsAutoControl;
 import com.barbermot.pilot.pid.RadianAutoControl;
 import com.barbermot.pilot.quad.QuadCopter;
 import com.barbermot.pilot.rc.RemoteControl;
@@ -202,7 +203,7 @@ public class FlightBuilder {
         listener.setComputer(computer);
         autoAileron = new RadianAutoControl(listener,
                 Logger.getLogger("AileronControl"));
-        autoGpsAileron = new AutoControl(listener,
+        autoGpsAileron = new GpsAutoControl(listener,
                 Logger.getLogger("AileronGpsControl"));
         
         listener = new RudderControlListener();
@@ -214,7 +215,7 @@ public class FlightBuilder {
         listener.setComputer(computer);
         autoElevator = new RadianAutoControl(listener,
                 Logger.getLogger("ElevatorControl"));
-        autoGpsElevator = new AutoControl(listener,
+        autoGpsElevator = new GpsAutoControl(listener,
                 Logger.getLogger("ElevatorGpsControl"));
         
     }
