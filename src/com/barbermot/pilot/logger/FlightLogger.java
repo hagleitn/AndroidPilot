@@ -28,13 +28,14 @@ public class FlightLogger implements Runnable {
     @Override
     public void run() {
         String str = String
-                .format("st: %s\tms: %d\trc: %h\th: %f\tdy: %f\tdx: %f\tdz: %f\tgh: %f\tt: %d\te: %d\ta: %d\tr: %d",
+                .format("st: %s\tms: %d\trc: %h\th: %f\tdy: %f\tdx: %f\tdz: %f\tgh: %f\tlat: %f\tlon: %f\tt: %d\te: %d\ta: %d\tr: %d",
                         computer.getState().getType(), computer.getTime(),
                         computer.getRc().getControlMask(),
                         computer.getHeight(),
                         computer.getLongitudinalDisplacement(),
                         computer.getLateralDisplacement(),
                         computer.getHeading(), computer.getGpsHeight(),
+                        computer.getLatitude(), computer.getLongitude(),
                         computer.getCurrentThrottle(),
                         computer.getCurrentElevator(),
                         computer.getCurrentAileron(),

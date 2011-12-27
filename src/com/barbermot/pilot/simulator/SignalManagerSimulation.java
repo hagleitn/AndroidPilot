@@ -77,6 +77,24 @@ public class SignalManagerSimulation implements SignalManager {
     }
     
     @Override
+    public Signal getGpsLongitudeSignal(int interval) {
+        GpsLongitudeSignalSimulation gps = new GpsLongitudeSignalSimulation(
+                engine);
+        futures.add(scheduler.scheduleWithFixedDelay(gps, 0, 250,
+                TimeUnit.MILLISECONDS));
+        return gps;
+    }
+    
+    @Override
+    public Signal getGpsLatitudeSignal(int interval) {
+        GpsLatitudeSignalSimulation gps = new GpsLatitudeSignalSimulation(
+                engine);
+        futures.add(scheduler.scheduleWithFixedDelay(gps, 0, 250,
+                TimeUnit.MILLISECONDS));
+        return gps;
+    }
+    
+    @Override
     public void setScheduler(ScheduledExecutorService scheduler) {
         this.scheduler = scheduler;
     }

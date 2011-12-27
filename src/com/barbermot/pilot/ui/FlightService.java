@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.hardware.SensorManager;
 import android.location.LocationManager;
 import android.os.IBinder;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.barbermot.pilot.R;
@@ -15,16 +16,19 @@ import com.barbermot.pilot.flight.FlightThread;
 
 public class FlightService extends Service {
     
-    private FlightThread flightThread;
+    private FlightThread        flightThread;
+    private static final String TAG = "FlightService";
     
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.i(TAG, "starting service");
         flightThread.start();
         return START_STICKY;
     }
     
     @Override
     public void onCreate() {
+        Log.i(TAG, "creating service");
         showNotification();
         flightThread = new FlightThread(
                 (SensorManager) this.getSystemService(Context.SENSOR_SERVICE),
@@ -34,12 +38,14 @@ public class FlightService extends Service {
     
     @Override
     public void onDestroy() {
+        Log.i(TAG, "detroying service");
         this.stopForeground(true);
         
         flightThread.abort();
         try {
             flightThread.join();
         } catch (InterruptedException e) {}
+        flightThread = null;
         
         Toast.makeText(this, R.string.flight_service_stopped,
                 Toast.LENGTH_SHORT).show();

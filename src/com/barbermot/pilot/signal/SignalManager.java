@@ -24,6 +24,10 @@ public interface SignalManager {
     
     public abstract Signal getGpsAltitudeSignal(int interval);
     
+    public abstract Signal getGpsLongitudeSignal(int interval);
+    
+    public abstract Signal getGpsLatitudeSignal(int interval);
+    
     void setScheduler(ScheduledExecutorService scheduler);
     
 }

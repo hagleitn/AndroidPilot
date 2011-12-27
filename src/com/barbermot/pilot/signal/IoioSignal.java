@@ -38,7 +38,7 @@ public abstract class IoioSignal extends Signal implements Runnable {
             
             notifyListeners(measurement, time);
         } catch (MeasurementException e) {
-            logger.info("Failed to take measurement");
+            // logger.fine("Failed to take measurement");
         } catch (ConnectionLostException e) {
             logger.info("Connection lost");
             throw new RuntimeException(e);

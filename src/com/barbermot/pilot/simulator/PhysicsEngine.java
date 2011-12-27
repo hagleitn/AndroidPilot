@@ -210,8 +210,17 @@ public class PhysicsEngine {
     
     public void init() {}
     
+    public float getLatitude() {
+        return 0;
+    }
+    
+    public float getLongitude() {
+        return 0;
+    }
+    
     public float getGpsAlitude() {
-        return 2;
+        updateHeight();
+        return (float) Math.round(msl);
     }
     
     public long getTime() {

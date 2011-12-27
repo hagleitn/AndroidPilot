@@ -27,7 +27,7 @@ class SignalManagerImpl implements SignalManager {
     protected List<Future<?>>          futures;
     
     protected enum Type {
-        ORIENTATION_YAW, ORIENTATION_PITCH, ORIENTATION_ROLL, ULTRASOUND_HEIGHT, GPS_HEIGHT
+        ORIENTATION_YAW, ORIENTATION_PITCH, ORIENTATION_ROLL, ULTRASOUND_HEIGHT, GPS_HEIGHT, GPS_LAT, GPS_LON
     };
     
     public SignalManagerImpl(IOIO ioio, SensorManager sensorManager,
@@ -151,14 +151,34 @@ class SignalManagerImpl implements SignalManager {
         return signalMap.get(Type.GPS_HEIGHT);
     }
     
+    @Override
+    public Signal getGpsLongitudeSignal(int interval) {
+        if (!signalMap.containsKey(Type.GPS_LON)) {
+            createGpsSignals(interval);
+        }
+        return signalMap.get(Type.GPS_LON);
+    }
+    
+    @Override
+    public Signal getGpsLatitudeSignal(int interval) {
+        if (!signalMap.containsKey(Type.GPS_LAT)) {
+            createGpsSignals(interval);
+        }
+        return signalMap.get(Type.GPS_LAT);
+    }
+    
     protected void createGpsSignals(int interval) {
         logger.info("creating gps signal");
         
         SensorAdapter height = new SensorAdapter();
-        gps = new GpsSignal(locationManager, height, new DummyListener(),
-                new DummyListener(), new DummyListener(), interval);
+        SensorAdapter lat = new SensorAdapter();
+        SensorAdapter lon = new SensorAdapter();
+        gps = new GpsSignal(locationManager, height, lat, lon,
+                new DummyListener(), interval);
         futures.add(scheduler.submit(gps));
         signalMap.put(Type.GPS_HEIGHT, height);
+        signalMap.put(Type.GPS_LAT, lat);
+        signalMap.put(Type.GPS_LON, lon);
     }
     
     protected void createOrientationSignals(int interval) {

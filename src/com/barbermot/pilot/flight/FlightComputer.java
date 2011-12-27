@@ -42,6 +42,7 @@ public class FlightComputer implements Runnable {
     private float[]                  hoverConf;
     private float[]                  landingConf;
     private float[]                  orientationConf;
+    private float[]                  gpsConf;
     
     // Log writer
     private PrintStream              printer;
@@ -62,8 +63,8 @@ public class FlightComputer implements Runnable {
     private float                    height;
     private float                    zeroHeight;
     
-    private float                    gpsHeight;
-    private float                    zeroGpsHeight;
+    private Waypoint                 currentLocation;
+    private Waypoint                 zeroLocation;
     
     private float                    goalHeight;
     
@@ -86,9 +87,13 @@ public class FlightComputer implements Runnable {
     public FlightComputer() {
         config = FlightConfiguration.get();
         
+        currentLocation = new Waypoint(0, 0, 0);
+        zeroLocation = new Waypoint(0, 0, 0);
+        
         this.hoverConf = config.getHoverConf();
         this.landingConf = config.getLandingConf();
         this.orientationConf = config.getOrientationConf();
+        this.gpsConf = config.getGpsConf();
         
         this.minThrottle = config.getMinThrottle();
         this.maxThrottle = config.getMaxThrottle();
@@ -118,6 +123,18 @@ public class FlightComputer implements Runnable {
     
     public synchronized void hover(float height) throws ConnectionLostException {
         state.transition(new StateEvent<Float>(FlightState.Type.HOVER, height));
+    }
+    
+    public void waypoint(float height) throws ConnectionLostException {
+        Waypoint wp;
+        try {
+            wp = (Waypoint) currentLocation.clone();
+            wp.altitude = height;
+            state.transition(new StateEvent<Waypoint>(
+                    FlightState.Type.WAYPOINT_HOLD, wp));
+        } catch (CloneNotSupportedException e) {
+            logger.warning("Waypoint clone not supported.");
+        }
     }
     
     public synchronized void ground() throws ConnectionLostException {
@@ -198,13 +215,6 @@ public class FlightComputer implements Runnable {
                 manualControl();
             }
             
-            // no height signal from ultra sound try descending
-            if (!hasHeightSignal()) {
-                
-                logger.warning("Last height: " + lastTimeHeightSignal);
-                emergencyDescent();
-            }
-            
             state.update();
         } catch (ConnectionLostException e) {
             throw new RuntimeException(e);
@@ -213,6 +223,10 @@ public class FlightComputer implements Runnable {
     
     public boolean hasHeightSignal() {
         return (time - lastTimeHeightSignal) < config.getEmergencyDelta();
+    }
+    
+    public boolean hasGpsSignal() {
+        return (time - lastTimeGpsHeight) < config.getEmergencyDeltaGps();
     }
     
     public float[] getHoverConf() {
@@ -239,16 +253,12 @@ public class FlightComputer implements Runnable {
         this.orientationConf = orientationConf;
     }
     
-    public void setHoverConfiguration(float[] conf) {
-        hoverConf = conf;
+    public float[] getGpsConf() {
+        return gpsConf;
     }
     
-    public void setLandingConfiguration(float[] conf) {
-        landingConf = conf;
-    }
-    
-    public void setStabilizerConfiguration(float[] conf) {
-        orientationConf = conf;
+    public void setGpsConf(float[] gpsConf) {
+        this.gpsConf = gpsConf;
     }
     
     public void setMinThrottle(int min) {
@@ -444,11 +454,11 @@ public class FlightComputer implements Runnable {
     }
     
     public void setGpsHeight(float gpsHeight) {
-        this.gpsHeight = gpsHeight;
+        this.currentLocation.altitude = gpsHeight;
     }
     
     public float getGpsHeight() {
-        return gpsHeight;
+        return currentLocation.altitude;
     }
     
     public long getLastTimeGpsHeight() {
@@ -468,14 +478,47 @@ public class FlightComputer implements Runnable {
     }
     
     public float getZeroGpsHeight() {
-        return zeroGpsHeight;
+        return zeroLocation.altitude;
     }
     
     public void setZeroGpsHeight(float zeroGpsHeight) {
-        this.zeroGpsHeight = zeroGpsHeight;
+        this.zeroLocation.altitude = zeroGpsHeight;
     }
     
     public void setGoalHeight(float height) {
         this.goalHeight = height;
     }
+    
+    public float getLatitude() {
+        return currentLocation.latitude;
+    }
+    
+    public void setLatitude(float lat) {
+        currentLocation.latitude = lat;
+    }
+    
+    public float getLongitude() {
+        return currentLocation.longitude;
+    }
+    
+    public void setLongitude(float lon) {
+        currentLocation.longitude = lon;
+    }
+    
+    public void setZeroLatitude(float latitude) {
+        zeroLocation.latitude = latitude;
+    }
+    
+    public void setZeroLongitude(float longitude) {
+        zeroLocation.longitude = longitude;
+    }
+    
+    public float getZeroLatitude() {
+        return zeroLocation.latitude;
+    }
+    
+    public float getZeroLongitude() {
+        return zeroLocation.longitude;
+    }
+    
 }

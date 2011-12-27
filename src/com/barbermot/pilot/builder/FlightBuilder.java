@@ -60,20 +60,35 @@ import com.barbermot.pilot.signal.SignalManagerFactory;
 public class FlightBuilder {
     
     private static final Logger                       logger = Logger.getLogger("FlightBuilder");
+    
     private FlightComputer                            computer;
+    
     private PrintStream                               printer;
+    
     private SensorManager                             sensorManager;
+    private SignalManager                             signalManager;
     private LocationManager                           locationManager;
+    
     private ScheduledExecutorService                  scheduler;
+    
     private QuadCopter                                ufo;
+    
     private FlightConfiguration                       config;
+    
     private Map<FlightConfiguration.PinType, Integer> map;
+    
     private IOIO                                      ioio;
     private Uart                                      uart;
+    
     private AutoControl                               autoThrottle;
     private AutoControl                               autoAileron;
     private AutoControl                               autoElevator;
     private AutoControl                               autoRudder;
+    
+    private AutoControl                               autoGpsThrottle;
+    private AutoControl                               autoGpsAileron;
+    private AutoControl                               autoGpsElevator;
+    
     private EnumMap<FlightState.Type, FlightState<?>> stateMap;
     private List<Future<?>>                           futures;
     
@@ -133,6 +148,10 @@ public class FlightBuilder {
         return futures;
     }
     
+    public SignalManager getSignalManager() {
+        return signalManager;
+    }
+    
     private void buildScheduler() {
         logger.info("Setting up scheduler");
         
@@ -176,11 +195,15 @@ public class FlightBuilder {
         listener.setComputer(computer);
         autoThrottle = new AutoControl(listener,
                 Logger.getLogger("ThrottleControl"));
+        autoGpsThrottle = new AutoControl(listener,
+                Logger.getLogger("ThrottleGpsControl"));
         
         listener = new AileronControlListener();
         listener.setComputer(computer);
         autoAileron = new RadianAutoControl(listener,
                 Logger.getLogger("AileronControl"));
+        autoGpsAileron = new AutoControl(listener,
+                Logger.getLogger("AileronGpsControl"));
         
         listener = new RudderControlListener();
         listener.setComputer(computer);
@@ -191,6 +214,9 @@ public class FlightBuilder {
         listener.setComputer(computer);
         autoElevator = new RadianAutoControl(listener,
                 Logger.getLogger("ElevatorControl"));
+        autoGpsElevator = new AutoControl(listener,
+                Logger.getLogger("ElevatorGpsControl"));
+        
     }
     
     private void buildQuadCopter() throws ConnectionLostException {
@@ -286,6 +312,11 @@ public class FlightBuilder {
         state.setType(type);
         state.setComputer(computer);
         stateMap.put(type, state);
+        ((WaypointHoldState) state).setAutoUltraSoundThrottle(autoThrottle);
+        ((WaypointHoldState) state).setAutoGpsThrottle(autoGpsThrottle);
+        ((WaypointHoldState) state).setAutoAileron(autoGpsAileron);
+        ((WaypointHoldState) state).setAutoElevator(autoGpsElevator);
+        ((WaypointHoldState) state).setAutoRudder(autoRudder);
         
         type = FlightState.Type.WAYPOINT_TRACK;
         state = new WaypointTrackState();
@@ -314,12 +345,16 @@ public class FlightBuilder {
         // Ground
         stateMap.get(FlightState.Type.GROUND).addTransition(
                 stateMap.get(FlightState.Type.HOVER));
+        stateMap.get(FlightState.Type.GROUND).addTransition(
+                stateMap.get(FlightState.Type.WAYPOINT_HOLD));
         
         // Hover
         stateMap.get(FlightState.Type.HOVER).addTransition(
                 stateMap.get(FlightState.Type.HOVER));
         stateMap.get(FlightState.Type.HOVER).addTransition(
                 stateMap.get(FlightState.Type.STABILIZED_HOVER));
+        stateMap.get(FlightState.Type.HOVER).addTransition(
+                stateMap.get(FlightState.Type.WAYPOINT_HOLD));
         stateMap.get(FlightState.Type.HOVER).addTransition(
                 stateMap.get(FlightState.Type.EMERGENCY_LANDING));
         stateMap.get(FlightState.Type.HOVER).addTransition(
@@ -333,6 +368,8 @@ public class FlightBuilder {
         stateMap.get(FlightState.Type.LANDING).addTransition(
                 stateMap.get(FlightState.Type.HOVER));
         stateMap.get(FlightState.Type.LANDING).addTransition(
+                stateMap.get(FlightState.Type.WAYPOINT_HOLD));
+        stateMap.get(FlightState.Type.LANDING).addTransition(
                 stateMap.get(FlightState.Type.EMERGENCY_LANDING));
         stateMap.get(FlightState.Type.LANDING).addTransition(
                 stateMap.get(FlightState.Type.GROUND));
@@ -341,11 +378,25 @@ public class FlightBuilder {
         stateMap.get(FlightState.Type.STABILIZED_HOVER).addTransition(
                 stateMap.get(FlightState.Type.HOVER));
         stateMap.get(FlightState.Type.STABILIZED_HOVER).addTransition(
+                stateMap.get(FlightState.Type.WAYPOINT_HOLD));
+        stateMap.get(FlightState.Type.STABILIZED_HOVER).addTransition(
                 stateMap.get(FlightState.Type.STABILIZED_HOVER));
         stateMap.get(FlightState.Type.STABILIZED_HOVER).addTransition(
                 stateMap.get(FlightState.Type.LANDING));
         stateMap.get(FlightState.Type.STABILIZED_HOVER).addTransition(
                 stateMap.get(FlightState.Type.EMERGENCY_LANDING));
+        
+        // Waypoint hold
+        stateMap.get(FlightState.Type.WAYPOINT_HOLD).addTransition(
+                stateMap.get(FlightState.Type.HOVER));
+        stateMap.get(FlightState.Type.WAYPOINT_HOLD).addTransition(
+                stateMap.get(FlightState.Type.STABILIZED_HOVER));
+        stateMap.get(FlightState.Type.WAYPOINT_HOLD).addTransition(
+                stateMap.get(FlightState.Type.WAYPOINT_HOLD));
+        stateMap.get(FlightState.Type.WAYPOINT_HOLD).addTransition(
+                stateMap.get(FlightState.Type.EMERGENCY_LANDING));
+        stateMap.get(FlightState.Type.WAYPOINT_HOLD).addTransition(
+                stateMap.get(FlightState.Type.LANDING));
         
         // Manual Control
         stateMap.get(FlightState.Type.MANUAL_CONTROL).addTransition(
@@ -355,8 +406,8 @@ public class FlightBuilder {
     private void buildSignalArray() throws ConnectionLostException {
         logger.info("Setting up signal array");
         
-        SignalManager signalManager = SignalManagerFactory.getManager(ioio,
-                sensorManager, locationManager, scheduler);
+        signalManager = SignalManagerFactory.getManager(ioio, sensorManager,
+                locationManager, scheduler);
         Signal signal = signalManager.getUltraSoundSignal(
                 config.getMinTimeUltraSound(),
                 map.get(FlightConfiguration.PinType.ULTRA_SOUND));
@@ -408,6 +459,26 @@ public class FlightBuilder {
                 computer.setLastTimeGpsHeight(time);
             }
         });
+        signal.registerListener(autoGpsThrottle);
+        
+        signal = signalManager.getGpsLatitudeSignal(config.getMinTimeGps());
+        signal.registerListener(new SignalListener() {
+            
+            public void update(float x, long time) {
+                computer.setLatitude(x);
+            }
+        });
+        signal.registerListener(autoGpsElevator);
+        
+        signal = signalManager.getGpsLongitudeSignal(config.getMinTimeGps());
+        signal.registerListener(new SignalListener() {
+            
+            public void update(float x, long time) {
+                computer.setLongitude(x);
+            }
+        });
+        signal.registerListener(autoGpsAileron);
+        
         futures.addAll(signalManager.getFutures());
     }
 }

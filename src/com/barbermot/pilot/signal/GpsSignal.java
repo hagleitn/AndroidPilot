@@ -53,8 +53,10 @@ class GpsSignal implements LocationListener, Runnable {
     }
     
     public void abort() {
-        looper.quit();
-        manager.removeUpdates(this);
+        if (looper != null) {
+            looper.quit();
+            manager.removeUpdates(this);
+        }
     }
     
     @Override

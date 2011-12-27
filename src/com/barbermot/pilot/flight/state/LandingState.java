@@ -35,6 +35,11 @@ public class LandingState extends FlightState<Void> {
     
     @Override
     public void update() throws ConnectionLostException {
+        // no height signal, emergency landing
+        if (!computer.hasHeightSignal()) {
+            transition(new StateEvent<Void>(Type.EMERGENCY_LANDING, null));
+        }
+        
         // turn off throttle when close to ground
         if (computer.getHeight() <= computer.getZeroHeight()
                 + FlightConfiguration.get().getThrottleOffHeight()) {

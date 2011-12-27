@@ -37,6 +37,8 @@ public class FlightConfiguration {
             -1000000f, 1000000f                           };
     private static final float[]  ORIENTATION_CONF         = { 50f, 0.07f,
             350f, -600f, 400f                             };
+    private static final float[]  GPS_CONF                 = { 5.7f, 0.0007f,
+            35000f, -0f, 40000f                           };
     
     // delay between readings of the ultra sound module
     private static final int      MIN_TIME_ULTRA_SOUND     = 100;
@@ -69,6 +71,8 @@ public class FlightConfiguration {
                                                                    / 20;
     
     private static final int      EMERGENCY_DELTA          = 1000;
+    
+    private static final int      EMERGENCY_DELTA_GPS      = 10000;
     
     private static final int      NUM_THREADS              = 6;
     
@@ -130,6 +134,10 @@ public class FlightConfiguration {
         return ORIENTATION_CONF;
     }
     
+    public float[] getGpsConf() {
+        return GPS_CONF;
+    }
+    
     public int getMinTimeUltraSound() {
         return MIN_TIME_ULTRA_SOUND;
     }
@@ -164,6 +172,10 @@ public class FlightConfiguration {
     
     public int getEmergencyDelta() {
         return EMERGENCY_DELTA;
+    }
+    
+    public int getEmergencyDeltaGps() {
+        return EMERGENCY_DELTA_GPS;
     }
     
     public int getNumberThreads() {

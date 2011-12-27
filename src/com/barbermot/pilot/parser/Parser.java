@@ -26,6 +26,17 @@ public class Parser {
             char c = scanner.next(".").charAt(0);
             switch (c) {
                 
+                // Command "W <float>" holds the waypoint at altitude <float>
+                case 'w':
+                case 'W':
+                    if (scanner.hasNextFloat()) {
+                        f = scanner.nextFloat();
+                        computer.waypoint(f);
+                    } else {
+                        fail(cmd);
+                    }
+                    break;
+                
                 // Command "H <float>" hovers the thing at altitude <float>
                 case 'h':
                 case 'H':
@@ -82,13 +93,16 @@ public class Parser {
                             max };
                     switch (type) {
                         case 1:
-                            computer.setHoverConfiguration(conf);
+                            computer.setHoverConf(conf);
                             break;
                         case 2:
-                            computer.setLandingConfiguration(conf);
+                            computer.setLandingConf(conf);
                             break;
                         case 3:
-                            computer.setStabilizerConfiguration(conf);
+                            computer.setOrientationConf(conf);
+                            break;
+                        case 4:
+                            computer.setGpsConf(conf);
                             break;
                         default:
                             fail(cmd);
