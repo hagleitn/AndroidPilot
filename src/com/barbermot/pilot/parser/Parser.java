@@ -7,6 +7,7 @@ import java.util.Scanner;
 import java.util.logging.Logger;
 
 import com.barbermot.pilot.flight.FlightComputer;
+import com.barbermot.pilot.quad.QuadCopter;
 
 public class Parser {
     
@@ -25,6 +26,40 @@ public class Parser {
         if (scanner.hasNext(".")) {
             char c = scanner.next(".").charAt(0);
             switch (c) {
+                
+                // i <int> <int> inverts the respective servo
+                case 'i':
+                case 'I':
+                    if (scanner.hasNextInt()) {
+                        x = scanner.nextInt();
+                        int on;
+                        if (scanner.hasNextInt()) {
+                            on = scanner.nextInt();
+                            QuadCopter.Direction d = null;
+                            switch (x) {
+                                case 0:
+                                    d = QuadCopter.Direction.LATERAL;
+                                    break;
+                                case 1:
+                                    d = QuadCopter.Direction.LONGITUDINAL;
+                                    break;
+                                case 2:
+                                    d = QuadCopter.Direction.ROTATIONAL;
+                                    break;
+                                case 3:
+                                    d = QuadCopter.Direction.VERTICAL;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            if (d != null) {
+                                computer.getUfo().invert(d, on == 1);
+                            }
+                        }
+                    } else {
+                        fail(cmd);
+                    }
+                    break;
                 
                 // Command o <string> sets the control mask of the RC
                 case 'o':

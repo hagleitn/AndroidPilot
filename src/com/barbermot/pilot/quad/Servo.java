@@ -12,6 +12,7 @@ class Servo {
     private int       minOut;
     private int       maxOut;
     private PwmOutput pwm;
+    private int       inverted;
     
     public Servo(IOIO ioio, int pin, int minIn, int maxIn, int minOut,
             int maxOut) throws ConnectionLostException {
@@ -20,6 +21,19 @@ class Servo {
         this.minOut = minOut;
         this.maxOut = maxOut;
         pwm = ioio.openPwmOutput(pin, 50);
+        inverted = 1;
+    }
+    
+    public boolean isInverted() {
+        return inverted == -1;
+    }
+    
+    public void invert(boolean on) {
+        if (on) {
+            inverted = -1;
+        } else {
+            inverted = 1;
+        }
     }
     
     public int read() {
@@ -40,7 +54,8 @@ class Servo {
     }
     
     private int map(int value) {
-        return minOut + (maxOut - minOut) * (value - minIn) / (maxIn - minIn);
+        return minOut + (maxOut - minOut) * ((inverted * value) - minIn)
+                / (maxIn - minIn);
     }
     
     private int mapReverse(int value) {

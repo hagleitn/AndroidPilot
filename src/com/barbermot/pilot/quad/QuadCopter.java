@@ -61,6 +61,14 @@ public class QuadCopter {
         
     }
     
+    public boolean isInverted(Direction d) {
+        return servos.get(d).isInverted();
+    }
+    
+    public void invert(Direction d, boolean on) {
+        servos.get(d).invert(on);
+    }
+    
     public void move(int x, int y, int z, int r) throws ConnectionLostException {
         move(Direction.LONGITUDINAL, x);
         move(Direction.LATERAL, y);
