@@ -203,7 +203,7 @@ public class PhysicsEngine {
         if (pin == ultrasoundPin) {
             updateHeight();
             double r = normalDistribution();
-            value = (int) (msl * 29 * 2 * 100 / 1.8f + r * deviation);
+            value = (int) (msl * 29 * 2 * 100 + r * deviation);
         }
         
         return value;

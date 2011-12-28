@@ -27,8 +27,6 @@ public class UltrasoundSignal extends IoioSignal {
         // Log.d(TAG, "Microseconds "+microseconds);
         float value = microseconds / 29 / 2;
         
-        // correction factor for ioio readings
-        value = value * 1.8f;
         if (value > MAX_RELIABLE) {
             throw new MeasurementException();
         }
