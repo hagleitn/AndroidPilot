@@ -142,6 +142,21 @@ public class FlightThread extends Thread {
         if (connected) {
             interrupt();
         }
+        
+        try {
+            if (ioio != null) {
+                ioio.waitForDisconnect();
+            }
+            if (computer != null && computer.getExecutor() != null) {
+                if (!computer.getExecutor().awaitTermination(60,
+                        TimeUnit.SECONDS)) {
+                    logger.warning("Timeout while shutting down.");
+                }
+            }
+        } catch (InterruptedException e) {
+            logger.log(Level.INFO, "InterruptedException caught");
+        }
+        logger.info("abort complete.");
     }
     
     private void setup() throws ConnectionLostException {
@@ -166,7 +181,8 @@ public class FlightThread extends Thread {
             try {
                 f.get();
             } catch (InterruptedException e) {
-                logger.log(Level.SEVERE, "Exception caught.", e);
+                logger.log(Level.INFO, "InterruptedException caught.", e);
+                break;
             } catch (ExecutionException e) {
                 Throwable ex = e;
                 while (ex != null) {
@@ -175,15 +191,6 @@ public class FlightThread extends Thread {
                 }
             }
         }
-        
-        try {
-            if (!computer.getExecutor().awaitTermination(60, TimeUnit.SECONDS)) {
-                logger.warning("Timeout while shutting down.");
-            }
-        } catch (InterruptedException e) {
-            logger.log(Level.SEVERE, "Exception caught.", e);
-        }
-        
         logger.info("exiting flight loop");
     }
 }
