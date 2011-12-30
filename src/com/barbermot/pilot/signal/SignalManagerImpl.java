@@ -1,5 +1,13 @@
 package com.barbermot.pilot.signal;
 
+import static com.barbermot.pilot.signal.SignalManagerImpl.Type.GPS_HEIGHT;
+import static com.barbermot.pilot.signal.SignalManagerImpl.Type.GPS_LAT;
+import static com.barbermot.pilot.signal.SignalManagerImpl.Type.GPS_LON;
+import static com.barbermot.pilot.signal.SignalManagerImpl.Type.ORIENTATION_PITCH;
+import static com.barbermot.pilot.signal.SignalManagerImpl.Type.ORIENTATION_ROLL;
+import static com.barbermot.pilot.signal.SignalManagerImpl.Type.ORIENTATION_YAW;
+import static com.barbermot.pilot.signal.SignalManagerImpl.Type.ULTRASOUND_HEIGHT;
+import static com.barbermot.pilot.signal.SignalManagerImpl.Type.values;
 import ioio.lib.api.IOIO;
 import ioio.lib.api.exception.ConnectionLostException;
 
@@ -61,7 +69,7 @@ class SignalManagerImpl implements SignalManager {
             gps.abort();
         }
         
-        for (Type t : Type.values()) {
+        for (Type t : values()) {
             Signal s = signalMap.get(t);
             if (null != s) {
                 s.abort();
@@ -86,10 +94,10 @@ class SignalManagerImpl implements SignalManager {
      */
     @Override
     public Signal getYawSignal(int interval) throws ConnectionLostException {
-        if (!signalMap.containsKey(Type.ORIENTATION_YAW)) {
+        if (!signalMap.containsKey(ORIENTATION_YAW)) {
             createOrientationSignals(interval);
         }
-        return signalMap.get(Type.ORIENTATION_YAW);
+        return signalMap.get(ORIENTATION_YAW);
     }
     
     /*
@@ -99,10 +107,10 @@ class SignalManagerImpl implements SignalManager {
      */
     @Override
     public Signal getPitchSignal(int interval) {
-        if (!signalMap.containsKey(Type.ORIENTATION_PITCH)) {
+        if (!signalMap.containsKey(ORIENTATION_PITCH)) {
             createOrientationSignals(interval);
         }
-        return signalMap.get(Type.ORIENTATION_PITCH);
+        return signalMap.get(ORIENTATION_PITCH);
     }
     
     /*
@@ -112,10 +120,10 @@ class SignalManagerImpl implements SignalManager {
      */
     @Override
     public Signal getRollSignal(int interval) {
-        if (!signalMap.containsKey(Type.ORIENTATION_ROLL)) {
+        if (!signalMap.containsKey(ORIENTATION_ROLL)) {
             createOrientationSignals(interval);
         }
-        return signalMap.get(Type.ORIENTATION_ROLL);
+        return signalMap.get(ORIENTATION_ROLL);
     }
     
     /*
@@ -127,15 +135,15 @@ class SignalManagerImpl implements SignalManager {
     @Override
     public Signal getUltraSoundSignal(int interval, int pin)
             throws ConnectionLostException {
-        if (!signalMap.containsKey(Type.ULTRASOUND_HEIGHT)) {
+        if (!signalMap.containsKey(ULTRASOUND_HEIGHT)) {
             logger.info("creating ultrasound signal");
             
             IoioSignal signal = new UltrasoundSignal(ioio, pin);
             futures.add(scheduler.scheduleWithFixedDelay(signal, 0, interval,
                     TimeUnit.MILLISECONDS));
-            signalMap.put(Type.ULTRASOUND_HEIGHT, signal);
+            signalMap.put(ULTRASOUND_HEIGHT, signal);
         }
-        return signalMap.get(Type.ULTRASOUND_HEIGHT);
+        return signalMap.get(ULTRASOUND_HEIGHT);
     }
     
     /*
@@ -145,26 +153,26 @@ class SignalManagerImpl implements SignalManager {
      */
     @Override
     public Signal getGpsAltitudeSignal(int interval) {
-        if (!signalMap.containsKey(Type.GPS_HEIGHT)) {
+        if (!signalMap.containsKey(GPS_HEIGHT)) {
             createGpsSignals(interval);
         }
-        return signalMap.get(Type.GPS_HEIGHT);
+        return signalMap.get(GPS_HEIGHT);
     }
     
     @Override
     public Signal getGpsLongitudeSignal(int interval) {
-        if (!signalMap.containsKey(Type.GPS_LON)) {
+        if (!signalMap.containsKey(GPS_LON)) {
             createGpsSignals(interval);
         }
-        return signalMap.get(Type.GPS_LON);
+        return signalMap.get(GPS_LON);
     }
     
     @Override
     public Signal getGpsLatitudeSignal(int interval) {
-        if (!signalMap.containsKey(Type.GPS_LAT)) {
+        if (!signalMap.containsKey(GPS_LAT)) {
             createGpsSignals(interval);
         }
-        return signalMap.get(Type.GPS_LAT);
+        return signalMap.get(GPS_LAT);
     }
     
     protected void createGpsSignals(int interval) {
@@ -176,9 +184,9 @@ class SignalManagerImpl implements SignalManager {
         gps = new GpsSignal(locationManager, height, lat, lon,
                 new DummyListener(), interval);
         futures.add(scheduler.submit(gps));
-        signalMap.put(Type.GPS_HEIGHT, height);
-        signalMap.put(Type.GPS_LAT, lat);
-        signalMap.put(Type.GPS_LON, lon);
+        signalMap.put(GPS_HEIGHT, height);
+        signalMap.put(GPS_LAT, lat);
+        signalMap.put(GPS_LON, lon);
     }
     
     protected void createOrientationSignals(int interval) {
@@ -188,8 +196,8 @@ class SignalManagerImpl implements SignalManager {
         SensorAdapter pitch = new SensorAdapter();
         SensorAdapter roll = new SensorAdapter();
         orientation = new OrientationSignal(sensorManager, yaw, roll, pitch);
-        signalMap.put(Type.ORIENTATION_YAW, yaw);
-        signalMap.put(Type.ORIENTATION_ROLL, roll);
-        signalMap.put(Type.ORIENTATION_PITCH, pitch);
+        signalMap.put(ORIENTATION_YAW, yaw);
+        signalMap.put(ORIENTATION_ROLL, roll);
+        signalMap.put(ORIENTATION_PITCH, pitch);
     }
 }

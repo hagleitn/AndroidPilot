@@ -21,7 +21,6 @@ public class AndroidHandler extends Handler {
     @Override
     public void publish(LogRecord arg0) {
         String tag = arg0.getLoggerName();
-        // String tag = "barbermot";
         String msg = arg0.getMessage();
         Level level = arg0.getLevel();
         Throwable t = arg0.getThrown();

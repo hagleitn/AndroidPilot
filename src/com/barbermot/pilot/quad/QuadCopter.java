@@ -1,5 +1,9 @@
 package com.barbermot.pilot.quad;
 
+import static com.barbermot.pilot.quad.QuadCopter.Direction.LATERAL;
+import static com.barbermot.pilot.quad.QuadCopter.Direction.LONGITUDINAL;
+import static com.barbermot.pilot.quad.QuadCopter.Direction.ROTATIONAL;
+import static com.barbermot.pilot.quad.QuadCopter.Direction.VERTICAL;
 import ioio.lib.api.IOIO;
 import ioio.lib.api.exception.ConnectionLostException;
 
@@ -31,9 +35,6 @@ public class QuadCopter {
     
     private EnumMap<Direction, Integer> pins;
     
-    @SuppressWarnings("unused")
-    private int                         gainPin;
-    
     /*
      * Color map for GU-344 gyroscope pins (available with GAUI 330X)
      * aileronPin; // White rudderPin; // Yellow throttlePin; // Orange
@@ -43,10 +44,10 @@ public class QuadCopter {
             int throttlePin, int elevatorPin, int gainPin)
             throws ConnectionLostException {
         pins = new EnumMap<Direction, Integer>(Direction.class);
-        pins.put(Direction.LONGITUDINAL, elevatorPin); // Red
-        pins.put(Direction.LATERAL, aileronPin); // White
-        pins.put(Direction.VERTICAL, throttlePin); // Orange
-        pins.put(Direction.ROTATIONAL, rudderPin); // Yellow
+        pins.put(LONGITUDINAL, elevatorPin); // Red
+        pins.put(LATERAL, aileronPin); // White
+        pins.put(VERTICAL, throttlePin); // Orange
+        pins.put(ROTATIONAL, rudderPin); // Yellow
         
         servos = new EnumMap<Direction, Servo>(Direction.class);
         
@@ -55,7 +56,6 @@ public class QuadCopter {
                     MIN_SERVO, MAX_SERVO));
         }
         
-        this.gainPin = gainPin;
         gain = new Servo(ioio, gainPin, MIN_SPEED, MAX_SPEED, MIN_SERVO,
                 MAX_SERVO);
         
@@ -70,10 +70,10 @@ public class QuadCopter {
     }
     
     public void move(int x, int y, int z, int r) throws ConnectionLostException {
-        move(Direction.LONGITUDINAL, x);
-        move(Direction.LATERAL, y);
-        move(Direction.VERTICAL, z);
-        move(Direction.ROTATIONAL, r);
+        move(LONGITUDINAL, x);
+        move(LATERAL, y);
+        move(VERTICAL, z);
+        move(ROTATIONAL, r);
     }
     
     public void move(Map<Direction, Integer> m) throws ConnectionLostException {
@@ -111,19 +111,19 @@ public class QuadCopter {
     }
     
     public void throttle(int speed) throws ConnectionLostException {
-        move(Direction.VERTICAL, speed);
+        move(VERTICAL, speed);
     }
     
     public void elevator(int speed) throws ConnectionLostException {
-        move(Direction.LONGITUDINAL, speed);
+        move(LONGITUDINAL, speed);
     }
     
     public void aileron(int speed) throws ConnectionLostException {
-        move(Direction.LATERAL, speed);
+        move(LATERAL, speed);
     }
     
     public void rudder(int speed) throws ConnectionLostException {
-        move(Direction.ROTATIONAL, speed);
+        move(ROTATIONAL, speed);
     }
     
     public void adjustGain(int value) throws ConnectionLostException {

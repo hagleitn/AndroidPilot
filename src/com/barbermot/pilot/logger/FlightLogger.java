@@ -11,11 +11,8 @@ import com.barbermot.pilot.flight.FlightComputer;
  */
 public class FlightLogger implements Runnable {
     
-    @SuppressWarnings("unused")
-    private static final String TAG = "FlightLogger";
-    
-    private PrintStream         printer;
-    private FlightComputer      computer;
+    private PrintStream    printer;
+    private FlightComputer computer;
     
     public FlightLogger(PrintStream printer) {
         this.printer = printer;

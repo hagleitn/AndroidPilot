@@ -11,10 +11,7 @@ public class DigitalOutputSimulation extends DeviceSimulation implements
     }
     
     @Override
-    public void close() {
-        // TODO Auto-generated method stub
-        
-    }
+    public void close() {}
     
     @Override
     public void write(boolean val) throws ConnectionLostException {

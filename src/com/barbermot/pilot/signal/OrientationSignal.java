@@ -1,5 +1,8 @@
 package com.barbermot.pilot.signal;
 
+import static com.barbermot.pilot.signal.OrientationSignal.Type.PITCH;
+import static com.barbermot.pilot.signal.OrientationSignal.Type.ROLL;
+import static com.barbermot.pilot.signal.OrientationSignal.Type.YAW;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.EnumMap;
@@ -37,9 +40,9 @@ class OrientationSignal implements SensorEventListener {
         this.manager = manager;
         
         listenerMap = new EnumMap<Type, SignalListener>(Type.class);
-        listenerMap.put(Type.YAW, yaw);
-        listenerMap.put(Type.PITCH, pitch);
-        listenerMap.put(Type.ROLL, roll);
+        listenerMap.put(YAW, yaw);
+        listenerMap.put(PITCH, pitch);
+        listenerMap.put(ROLL, roll);
         
         Sensor accelerometer = manager
                 .getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -91,9 +94,9 @@ class OrientationSignal implements SensorEventListener {
         roll = orientation[2]; // * rad2deg;
         
         try {
-            listenerMap.get(Type.YAW).update(yaw, event.timestamp);
-            listenerMap.get(Type.PITCH).update(pitch, event.timestamp);
-            listenerMap.get(Type.ROLL).update(roll, event.timestamp);
+            listenerMap.get(YAW).update(yaw, event.timestamp);
+            listenerMap.get(PITCH).update(pitch, event.timestamp);
+            listenerMap.get(ROLL).update(roll, event.timestamp);
         } catch (ConnectionLostException e) {}
         
     }

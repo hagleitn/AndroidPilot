@@ -176,7 +176,7 @@ public class AutoControl implements SignalListener {
      *            boolean to start/stop the pid controller
      */
     public void engage(boolean engaged) {
-        logger.info("AutoThrottle " + (engaged ? "engaged" : "disengaged"));
+        logger.info(engaged ? "engaged" : "disengaged");
         this.engaged = engaged;
     }
     

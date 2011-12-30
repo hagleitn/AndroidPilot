@@ -1,5 +1,9 @@
 package com.barbermot.pilot.signal;
 
+import static com.barbermot.pilot.signal.GpsSignal.Type.HEIGHT;
+import static com.barbermot.pilot.signal.GpsSignal.Type.LAT;
+import static com.barbermot.pilot.signal.GpsSignal.Type.LOCATION;
+import static com.barbermot.pilot.signal.GpsSignal.Type.LON;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.EnumMap;
@@ -16,7 +20,6 @@ class GpsSignal implements LocationListener, Runnable {
     
     private static final Logger logger = Logger.getLogger("GpsSignal");
     
-    private Location            last;
     private int                 minTime;
     private Looper              looper;
     
@@ -35,10 +38,10 @@ class GpsSignal implements LocationListener, Runnable {
         this.minTime = minTime;
         
         listenerMap = new EnumMap<Type, SignalListener>(Type.class);
-        listenerMap.put(Type.HEIGHT, height);
-        listenerMap.put(Type.LAT, lat);
-        listenerMap.put(Type.LON, lon);
-        listenerMap.put(Type.LOCATION, location);
+        listenerMap.put(HEIGHT, height);
+        listenerMap.put(LAT, lat);
+        listenerMap.put(LON, lon);
+        listenerMap.put(LOCATION, location);
     }
     
     @Override
@@ -74,12 +77,10 @@ class GpsSignal implements LocationListener, Runnable {
          */
 
         try {
-            listenerMap.get(Type.HEIGHT).update((float) location.getAltitude(),
-                    time);
-            listenerMap.get(Type.LAT).update((float) location.getLatitude(),
-                    time);
-            listenerMap.get(Type.LON).update((float) location.getLongitude(),
-                    time);
+            listenerMap.get(HEIGHT)
+                    .update((float) location.getAltitude(), time);
+            listenerMap.get(LAT).update((float) location.getLatitude(), time);
+            listenerMap.get(LON).update((float) location.getLongitude(), time);
         } catch (ConnectionLostException e) {
             logger.log(Level.INFO, "Connection lost: ", e);
         }
