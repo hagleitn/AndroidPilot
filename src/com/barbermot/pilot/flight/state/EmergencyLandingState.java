@@ -2,18 +2,21 @@ package com.barbermot.pilot.flight.state;
 
 import ioio.lib.api.exception.ConnectionLostException;
 
-import com.barbermot.pilot.flight.FlightConfiguration;
-
 public class EmergencyLandingState extends FlightState<Void> {
+    
+    @Override
+    public boolean guard(Void arg) throws ConnectionLostException {
+        return true;
+    }
     
     @Override
     public void enter(Void arg) throws ConnectionLostException {
         logger.info("Entering emergency landing state");
         
-        computer.getUfo().throttle(
-                FlightConfiguration.get().getEmergencyDescent());
-        computer.setCurrentThrottle(FlightConfiguration.get()
-                .getEmergencyDescent());
+        int throttle = computer.getEmergencyDescentThrottle();
+        
+        computer.getUfo().throttle(throttle);
+        computer.setCurrentThrottle(throttle);
     }
     
     @Override

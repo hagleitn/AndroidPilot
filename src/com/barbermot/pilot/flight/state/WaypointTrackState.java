@@ -7,6 +7,11 @@ import com.barbermot.pilot.flight.Waypoint;
 public class WaypointTrackState extends FlightState<Waypoint> {
     
     @Override
+    public boolean guard(Waypoint arg) throws ConnectionLostException {
+        return true;
+    }
+    
+    @Override
     public void enter(Waypoint arg) throws ConnectionLostException {
         logger.info("Entering waypoint track state");
     }

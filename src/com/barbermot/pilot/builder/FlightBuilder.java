@@ -26,6 +26,7 @@ import com.barbermot.pilot.flight.FlightConfiguration;
 import com.barbermot.pilot.flight.FlightControlListener;
 import com.barbermot.pilot.flight.RudderControlListener;
 import com.barbermot.pilot.flight.ThrottleControlListener;
+import com.barbermot.pilot.flight.state.CalibrationState;
 import com.barbermot.pilot.flight.state.EmergencyLandingState;
 import com.barbermot.pilot.flight.state.FailedState;
 import com.barbermot.pilot.flight.state.FlightState;
@@ -278,6 +279,12 @@ public class FlightBuilder {
         stateMap.put(type, state);
         computer.setState(state);
         
+        type = FlightState.Type.CALIBRATION;
+        state = new CalibrationState();
+        state.setType(type);
+        state.setComputer(computer);
+        stateMap.put(type, state);
+        
         type = FlightState.Type.HOVER;
         state = new HoverState();
         state.setType(type);
@@ -348,6 +355,14 @@ public class FlightBuilder {
                 stateMap.get(FlightState.Type.HOVER));
         stateMap.get(FlightState.Type.GROUND).addTransition(
                 stateMap.get(FlightState.Type.WAYPOINT_HOLD));
+        stateMap.get(FlightState.Type.GROUND).addTransition(
+                stateMap.get(FlightState.Type.CALIBRATION));
+        
+        // Calibration
+        stateMap.get(FlightState.Type.CALIBRATION).addTransition(
+                stateMap.get(FlightState.Type.EMERGENCY_LANDING));
+        stateMap.get(FlightState.Type.CALIBRATION).addTransition(
+                stateMap.get(FlightState.Type.LANDING));
         
         // Hover
         stateMap.get(FlightState.Type.HOVER).addTransition(

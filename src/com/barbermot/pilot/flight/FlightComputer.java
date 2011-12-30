@@ -14,81 +14,64 @@ import com.barbermot.pilot.rc.RemoteControl;
 
 public class FlightComputer implements Runnable {
     
-    private static final Logger logger = Logger.getLogger("FlightComputer");
+    private static final Logger      logger = Logger.getLogger("FlightComputer");
     
-    private FlightState<?>      state;
+    private FlightState<?>           state;
     
-    private FlightConfiguration config;
+    private FlightConfiguration      config;
     
     // the actual QuadCopter
-    private QuadCopter          ufo;
+    private QuadCopter               ufo;
     
     // RC signals (from RC controller)
-    private RemoteControl       rc;
+    private RemoteControl            rc;
     
     // autopilot for throttle
-    private AutoControl         autoThrottle;
+    private AutoControl              autoThrottle;
     
     // autopilot for elevator
-    private AutoControl         autoElevator;
+    private AutoControl              autoElevator;
     
     // autopilot for aileron
-    private AutoControl         autoAileron;
+    private AutoControl              autoAileron;
     
     // autopilot for rudder
-    private AutoControl         autoRudder;
+    private AutoControl              autoRudder;
     
     // values for the PID controller
-    private float[]             hoverConf;
-    private float[]             landingConf;
-    private float[]             orientationConf;
-    private float[]             gpsConf;
+    private float[]                  hoverConf;
+    private float[]                  landingConf;
+    private float[]                  orientationConf;
+    private float[]                  gpsConf;
     
     // Log writer
-    private PrintStream         printer;
+    private PrintStream              printer;
     
     // min/max for the automatic control of the throttle
-    private int                 minThrottle;
-    private int                 maxThrottle;
+    private int                      minThrottle;
+    private int                      maxThrottle;
     
-    private int                 minTilt;
-    private int                 maxTilt;
+    private int                      minTilt;
+    private int                      maxTilt;
     
-    private float               minTiltAngle;
-    private float               maxTiltAngle;
+    private float                    minTiltAngle;
+    private float                    maxTiltAngle;
     
-    private float               minSpeed;
-    private float               maxSpeed;
+    private float                    minSpeed;
+    private float                    maxSpeed;
     
-    private float               height;
-    private float               zeroHeight;
+    private float                    height;
+    private float                    zeroHeight;
     
-    private Waypoint            currentLocation;
-    private Waypoint            zeroLocation;
+    private Waypoint                 currentLocation;
+    private Waypoint                 zeroLocation;
     
-    private float               goalHeight;
+    private float                    goalHeight;
     
-    private float               longitudinalDisplacement;
-    private float               zeroLongitudinalDisplacement;
-    private float               lateralDisplacement;
-    private float               zeroLateralDisplacement;
-    
-    public float getZeroLongitudinalDisplacement() {
-        return zeroLongitudinalDisplacement;
-    }
-    
-    public void setZeroLongitudinalDisplacement(
-            float zeroLongitudinalDisplacement) {
-        this.zeroLongitudinalDisplacement = zeroLongitudinalDisplacement;
-    }
-    
-    public float getZeroLateralDisplacement() {
-        return zeroLateralDisplacement;
-    }
-    
-    public void setZeroLateralDisplacement(float zeroLateralDisplacement) {
-        this.zeroLateralDisplacement = zeroLateralDisplacement;
-    }
+    private float                    longitudinalDisplacement;
+    private float                    zeroLongitudinalDisplacement;
+    private float                    lateralDisplacement;
+    private float                    zeroLateralDisplacement;
     
     private float                    heading;
     
@@ -101,6 +84,9 @@ public class FlightComputer implements Runnable {
     private int                      currentElevator;
     private int                      currentAileron;
     private int                      currentRudder;
+    
+    private int                      zeroThrottle;
+    private boolean                  isCalibrated;
     
     private ScheduledExecutorService scheduler;
     
@@ -127,9 +113,28 @@ public class FlightComputer implements Runnable {
         this.minTiltAngle = config.getMinTiltAngle();
         this.maxTiltAngle = config.getMaxTiltAngle();
         
+        this.isCalibrated = false;
+        
         time = System.currentTimeMillis();
         lastTimeHeightSignal = time;
         lastTimeOrientationSignal = time;
+    }
+    
+    public float getZeroLongitudinalDisplacement() {
+        return zeroLongitudinalDisplacement;
+    }
+    
+    public void setZeroLongitudinalDisplacement(
+            float zeroLongitudinalDisplacement) {
+        this.zeroLongitudinalDisplacement = zeroLongitudinalDisplacement;
+    }
+    
+    public float getZeroLateralDisplacement() {
+        return zeroLateralDisplacement;
+    }
+    
+    public void setZeroLateralDisplacement(float zeroLateralDisplacement) {
+        this.zeroLateralDisplacement = zeroLateralDisplacement;
     }
     
     public void shutdown() {
@@ -237,6 +242,11 @@ public class FlightComputer implements Runnable {
         setZeroLatitude(getLatitude());
         setZeroLongitude(getLongitude());
         balance();
+    }
+    
+    public void calibrateControls() throws ConnectionLostException {
+        state.transition(new StateEvent<Float>(FlightState.Type.CALIBRATION,
+                null));
     }
     
     public synchronized void run() {
@@ -556,5 +566,27 @@ public class FlightComputer implements Runnable {
     
     public float getZeroLongitude() {
         return zeroLocation.longitude;
+    }
+    
+    public boolean isCalibrated() {
+        return isCalibrated;
+    }
+    
+    public void setZeroThrottle(int zeroThrottle) {
+        logger.info("Calibrated Throttle to: " + zeroThrottle);
+        this.zeroThrottle = zeroThrottle;
+        this.isCalibrated = true;
+    }
+    
+    public int getZeroThrottle() {
+        return zeroThrottle;
+    }
+    
+    public int getEmergencyDescentThrottle() {
+        if (this.isCalibrated()) {
+            return zeroThrottle - config.getEmergencyDescentDelta();
+        } else {
+            return config.getEmergencyDescent();
+        }
     }
 }

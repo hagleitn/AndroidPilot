@@ -30,6 +30,11 @@ public class WaypointHoldState extends FlightState<Waypoint> {
     }
     
     @Override
+    public boolean guard(Waypoint arg) throws ConnectionLostException {
+        return computer.isCalibrated() && computer.hasGpsSignal();
+    }
+    
+    @Override
     public void enter(Waypoint arg) throws ConnectionLostException {
         logger.info("Entering waypoint hold state");
         

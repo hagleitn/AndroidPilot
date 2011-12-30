@@ -27,6 +27,12 @@ public class Parser {
             char c = scanner.next(".").charAt(0);
             switch (c) {
                 
+                // k calibrates the throttle
+                case 'k':
+                case 'K':
+                    computer.calibrateControls();
+                    break;
+                
                 // i <int> <int> inverts the respective servo
                 case 'i':
                 case 'I':

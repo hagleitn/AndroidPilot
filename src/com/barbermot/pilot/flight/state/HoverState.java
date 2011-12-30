@@ -2,6 +2,7 @@ package com.barbermot.pilot.flight.state;
 
 import ioio.lib.api.exception.ConnectionLostException;
 
+import com.barbermot.pilot.flight.FlightConfiguration;
 import com.barbermot.pilot.pid.AutoControl;
 
 public class HoverState extends FlightState<Float> {
@@ -14,6 +15,13 @@ public class HoverState extends FlightState<Float> {
     
     public void setAutoThrottle(AutoControl autoThrottle) {
         this.autoThrottle = autoThrottle;
+    }
+    
+    @Override
+    public boolean guard(Float height) throws ConnectionLostException {
+        return computer.isCalibrated()
+                && height <= FlightConfiguration.get().getMaxHoverHeight()
+                && computer.hasHeightSignal();
     }
     
     @Override

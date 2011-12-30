@@ -8,81 +8,88 @@ import com.barbermot.pilot.quad.QuadCopter;
 public class FlightConfiguration {
     
     // Pulse IN
-    private final int             ultraSoundPin            = 4;
-    private final int             aileronPinIn             = 28;
-    private final int             rudderPinIn              = 6;
-    private final int             throttlePinIn            = 7;
-    private final int             elevatorPinIn            = 27;
-    private final int             gainPinIn                = 22;
+    private final int             ultraSoundPin                 = 4;
+    private final int             aileronPinIn                  = 28;
+    private final int             rudderPinIn                   = 6;
+    private final int             throttlePinIn                 = 7;
+    private final int             elevatorPinIn                 = 27;
+    private final int             gainPinIn                     = 22;
     
     // PWM
-    private final int             aileronPinOut            = 10;
-    private final int             rudderPinOut             = 11;
-    private final int             throttlePinOut           = 12;
-    private final int             elevatorPinOut           = 13;
-    private final int             throttleMonitorPin       = 29;
-    private final int             gainPinOut               = 14;
+    private final int             aileronPinOut                 = 10;
+    private final int             rudderPinOut                  = 11;
+    private final int             throttlePinOut                = 12;
+    private final int             elevatorPinOut                = 13;
+    private final int             throttleMonitorPin            = 29;
+    private final int             gainPinOut                    = 14;
     
     // UART
-    private final int             rxPin                    = 9;
-    private final int             txPin                    = 3;
+    private final int             rxPin                         = 9;
+    private final int             txPin                         = 3;
     
     // delay between status messages
-    public static final int       MIN_TIME_STATUS_MESSAGE  = 5000;
+    private static final int      MIN_TIME_STATUS_MESSAGE       = 5000;
     
     // values for the PID controller
-    private static final float[]  HOVER_CONF               = { 57f, 0.07f,
-            35000f, -600000f, 4000000f                    };
-    private static final float[]  LANDING_CONF             = { 0, 0.1f, 60000f,
-            -1000000f, 1000000f                           };
-    private static final float[]  ORIENTATION_CONF         = { 50f, 0.07f,
-            350f, -600f, 400f                             };
-    private static final float[]  GPS_CONF                 = { 5.7f, 0.0007f,
-            35000f, -0f, 40000f                           };
+    private static final float[]  HOVER_CONF                    = { 57f,
+            0.001f, 35000f, -600000f, 4000000f                 };
+    private static final float[]  LANDING_CONF                  = { 0, 0.005f,
+            60000f, -1000000f, 1000000f                        };
+    private static final float[]  ORIENTATION_CONF              = { 50f, 0.07f,
+            350f, -600f, 400f                                  };
+    private static final float[]  GPS_CONF                      = { 5.7f,
+            0.0007f, 35000f, -4000f, 4000f                     };
     
     // delay between readings of the ultra sound module
-    private static final int      MIN_TIME_ULTRA_SOUND     = 100;
+    private static final int      MIN_TIME_ULTRA_SOUND          = 100;
     
     // delay between readings of the gyro
-    private static final int      MIN_TIME_ORIENTATION     = 150;
+    private static final int      MIN_TIME_ORIENTATION          = 150;
     
-    private static final long     MIN_TIME_FLIGHT_COMPUTER = 100;
+    private static final long     MIN_TIME_FLIGHT_COMPUTER      = 100;
     
-    private static final long     MIN_TIME_RC_ENGAGEMENT   = 250;
+    private static final long     MIN_TIME_RC_ENGAGEMENT        = 250;
     
     // initial min/max throttle setting
-    private static final int      MIN_THROTTLE             = QuadCopter.MIN_SPEED
-                                                                   + (QuadCopter.MAX_SPEED - QuadCopter.MIN_SPEED)
-                                                                   / 3;
-    private static final int      MAX_THROTTLE             = QuadCopter.MAX_SPEED
-                                                                   - (QuadCopter.MAX_SPEED - QuadCopter.MIN_SPEED)
-                                                                   / 8;
+    private static final int      MIN_THROTTLE                  = QuadCopter.MIN_SPEED
+                                                                        + (QuadCopter.MAX_SPEED - QuadCopter.MIN_SPEED)
+                                                                        / 3;
+    private static final int      MAX_THROTTLE                  = QuadCopter.MAX_SPEED
+                                                                        - (QuadCopter.MAX_SPEED - QuadCopter.MIN_SPEED)
+                                                                        / 8;
     
     // min/max for the automatic control of the aileron and elevator
-    private static final int      MIN_TILT                 = QuadCopter.MIN_SPEED / 2;
-    private static final int      MAX_TILT                 = QuadCopter.MAX_SPEED / 2;
+    private static final int      MIN_TILT                      = QuadCopter.MIN_SPEED / 2;
+    private static final int      MAX_TILT                      = QuadCopter.MAX_SPEED / 2;
     
     // landings will cut the power once this height is reached
-    private static final float    THROTTLE_OFF_HEIGHT      = 0.1f;
+    private static final float    THROTTLE_OFF_HEIGHT           = 0.1f;
     
     // throttle setting for when we don't know the height anymore
-    private static final int      EMERGENCY_DESCENT        = QuadCopter.STOP_SPEED
-                                                                   - (QuadCopter.MAX_SPEED - QuadCopter.MIN_SPEED)
-                                                                   / 20;
+    private static final int      EMERGENCY_DESCENT             = QuadCopter.STOP_SPEED
+                                                                        - (QuadCopter.MAX_SPEED - QuadCopter.MIN_SPEED)
+                                                                        / 20;
+    private static final int      EMERGENCY_DESCENT_DELTA       = 20;
     
-    private static final int      EMERGENCY_DELTA          = 1000;
+    private static final int      EMERGENCY_DELTA               = 1000;
     
-    private static final int      EMERGENCY_DELTA_GPS      = 10000;
+    private static final int      EMERGENCY_DELTA_GPS           = 10000;
     
-    private static final int      NUM_THREADS              = 6;
+    private static final int      NUM_THREADS                   = 6;
     
-    private static final int      MIN_TIME_GPS             = 100;
+    private static final int      MIN_TIME_GPS                  = 100;
     
-    private static final float    MIN_SPEED                = -100;
-    private static final float    MAX_SPEED                = 100;
+    private static final float    MIN_SPEED                     = -100;
+    private static final float    MAX_SPEED                     = 100;
     
-    private static final float    MIN_TILT_ANGLE           = (float) (-Math.PI / 4f);
-    private static final float    MAX_TILT_ANGLE           = (float) (Math.PI / 4f);
+    private static final float    MIN_TILT_ANGLE                = (float) (-Math.PI / 4f);
+    private static final float    MAX_TILT_ANGLE                = (float) (Math.PI / 4f);
+    
+    private static final float    MAX_HOVER_HEIGHT              = 3;
+    
+    private static final float    CALIBRATION_HEIGHT            = 0.05f;
+    private static final int      THROTTLE_STEP_FOR_CALIBRATION = 5;
+    private static final long     CALIBRATION_TIME_STEP         = 500;
     
     private Map<PinType, Integer> pinMap;
     
@@ -170,6 +177,10 @@ public class FlightConfiguration {
         return EMERGENCY_DESCENT;
     }
     
+    public int getEmergencyDescentDelta() {
+        return EMERGENCY_DESCENT_DELTA;
+    }
+    
     public int getEmergencyDelta() {
         return EMERGENCY_DELTA;
     }
@@ -210,4 +221,19 @@ public class FlightConfiguration {
         return MIN_TILT_ANGLE;
     }
     
+    public float getCalibrationHeight() {
+        return CALIBRATION_HEIGHT;
+    }
+    
+    public int getThrottleStepForCalibration() {
+        return THROTTLE_STEP_FOR_CALIBRATION;
+    }
+    
+    public float getMaxHoverHeight() {
+        return MAX_HOVER_HEIGHT;
+    }
+    
+    public long getCalibrationTimeStep() {
+        return CALIBRATION_TIME_STEP;
+    }
 }

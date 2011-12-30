@@ -10,6 +10,11 @@ public class LandingState extends FlightState<Void> {
     private AutoControl autoThrottle;
     
     @Override
+    public boolean guard(Void arg) throws ConnectionLostException {
+        return computer.isCalibrated();
+    }
+    
+    @Override
     public void enter(Void arg) throws ConnectionLostException {
         logger.info("Entering landing state");
         

@@ -62,17 +62,17 @@ class GpsSignal implements LocationListener, Runnable {
     @Override
     public void onLocationChanged(Location location) {
         long time = location.getTime();
-        if (last != null) {
-            logger.info("Bearing: " + location.bearingTo(last) + ", distance: "
-                    + location.distanceTo(last));
-            logger.info("Altitude: " + location.getAltitude() + ", lon: "
-                    + location.getLatitude() + ", lat: "
-                    + location.getLongitude());
-            logger.info("Accuracy: " + location.getAccuracy());
-        }
-        
-        last = location;
-        
+        /*
+         * if (last != null) { logger.info("Bearing: " +
+         * location.bearingTo(last) + ", distance: " +
+         * location.distanceTo(last)); logger.info("Altitude: " +
+         * location.getAltitude() + ", lon: " + location.getLatitude() +
+         * ", lat: " + location.getLongitude()); logger.info("Accuracy: " +
+         * location.getAccuracy()); }
+         * 
+         * last = location;
+         */
+
         try {
             listenerMap.get(Type.HEIGHT).update((float) location.getAltitude(),
                     time);

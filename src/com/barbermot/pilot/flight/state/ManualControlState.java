@@ -7,6 +7,11 @@ import com.barbermot.pilot.rc.RemoteControl;
 public class ManualControlState extends FlightState<Void> {
     
     @Override
+    public boolean guard(Void arg) throws ConnectionLostException {
+        return true;
+    }
+    
+    @Override
     public void enter(Void arg) throws ConnectionLostException {
         logger.info("Entering manual control state");
         
