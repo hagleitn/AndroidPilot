@@ -25,7 +25,7 @@ public class EmergencyLandingState extends FlightState<Void> {
     @Override
     public void update() throws ConnectionLostException {
         if (computer.hasHeightSignal()) {
-            transition(new StateEvent<Void>(Type.LANDING, null));
+            transition(Type.LANDING, null);
         }
         
     }

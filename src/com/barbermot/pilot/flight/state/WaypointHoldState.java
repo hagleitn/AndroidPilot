@@ -104,7 +104,7 @@ public class WaypointHoldState extends FlightState<Waypoint> {
                 computer.setAutoThrottle(autoGpsThrottle);
             }
         } else {
-            transition(new StateEvent<Void>(Type.EMERGENCY_LANDING, null));
+            transition(Type.EMERGENCY_LANDING, null);
         }
     }
     

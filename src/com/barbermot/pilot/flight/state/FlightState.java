@@ -24,16 +24,17 @@ public abstract class FlightState<T> {
     }
     
     @SuppressWarnings("unchecked")
-    public <D> void transition(StateEvent<D> e) throws ConnectionLostException {
-        logger.info("Transition: " + type + " -> " + e.type);
-        if (map.containsKey(e.type)) {
-            FlightState<D> state = (FlightState<D>) map.get(e.type);
-            if (!state.guard(e.arg)) {
+    public <D> void transition(Type nextType, D arg)
+            throws ConnectionLostException {
+        logger.info("Transition: " + type + " -> " + nextType);
+        if (map.containsKey(nextType)) {
+            FlightState<D> nextState = (FlightState<D>) map.get(nextType);
+            if (!nextState.guard(arg)) {
                 logger.warning("Condition for entry not met.");
             } else {
                 exit();
-                computer.setState(state);
-                state.enter(e.arg);
+                computer.setState(nextState);
+                nextState.enter(arg);
             }
         } else {
             logger.warning("Illegal state transition requested.");

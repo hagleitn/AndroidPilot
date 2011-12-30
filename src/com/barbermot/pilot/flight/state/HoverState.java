@@ -45,7 +45,7 @@ public class HoverState extends FlightState<Float> {
     @Override
     public void update() throws ConnectionLostException {
         if (!computer.hasHeightSignal()) {
-            transition(new StateEvent<Void>(Type.EMERGENCY_LANDING, null));
+            transition(Type.EMERGENCY_LANDING, null);
         }
     }
     

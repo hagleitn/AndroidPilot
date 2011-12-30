@@ -29,14 +29,14 @@ public class CalibrationState extends FlightState<Void> {
     @Override
     public void update() throws ConnectionLostException {
         if (!computer.hasHeightSignal()) {
-            transition(new StateEvent<Void>(Type.EMERGENCY_LANDING, null));
+            transition(Type.EMERGENCY_LANDING, null);
         }
         
         if ((computer.getHeight() - computer.getZeroHeight()) > FlightConfiguration
                 .get().getCalibrationHeight()) {
             computer.setZeroThrottle(currentThrottle
                     - FlightConfiguration.get().getThrottleStepForCalibration());
-            transition(new StateEvent<Void>(Type.LANDING, null));
+            transition(Type.LANDING, null);
         } else {
             long millis = System.currentTimeMillis();
             if ((millis - lastAdjustmentMillis) > FlightConfiguration.get()
