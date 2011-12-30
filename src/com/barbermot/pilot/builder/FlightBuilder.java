@@ -282,6 +282,7 @@ public class FlightBuilder {
         
         state = setupState(new GroundState(), GROUND);
         computer.setState(state);
+        state.enter(null);
         
         setupState(new CalibrationState(), CALIBRATION);
         

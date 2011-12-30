@@ -7,7 +7,7 @@ import com.barbermot.pilot.quad.QuadCopter;
 
 public class CalibrationState extends FlightState<Void> {
     
-    int        currentThrottle = -100;
+    int        currentThrottle;
     QuadCopter ufo;
     long       lastAdjustmentMillis;
     
@@ -18,6 +18,7 @@ public class CalibrationState extends FlightState<Void> {
     
     @Override
     public void enter(Void arg) throws ConnectionLostException {
+        currentThrottle = -100;
         computer.getUfo().throttle(currentThrottle);
     }
     
