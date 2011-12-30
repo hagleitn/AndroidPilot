@@ -1,5 +1,29 @@
 package com.barbermot.pilot.builder;
 
+import static com.barbermot.pilot.flight.FlightConfiguration.PinType.AILERON_IN;
+import static com.barbermot.pilot.flight.FlightConfiguration.PinType.AILERON_OUT;
+import static com.barbermot.pilot.flight.FlightConfiguration.PinType.ELEVATOR_IN;
+import static com.barbermot.pilot.flight.FlightConfiguration.PinType.ELEVATOR_OUT;
+import static com.barbermot.pilot.flight.FlightConfiguration.PinType.GAIN_IN;
+import static com.barbermot.pilot.flight.FlightConfiguration.PinType.GAIN_OUT;
+import static com.barbermot.pilot.flight.FlightConfiguration.PinType.RUDDER_IN;
+import static com.barbermot.pilot.flight.FlightConfiguration.PinType.RUDDER_OUT;
+import static com.barbermot.pilot.flight.FlightConfiguration.PinType.RX;
+import static com.barbermot.pilot.flight.FlightConfiguration.PinType.THROTTLE_IN;
+import static com.barbermot.pilot.flight.FlightConfiguration.PinType.THROTTLE_MONITOR;
+import static com.barbermot.pilot.flight.FlightConfiguration.PinType.THROTTLE_OUT;
+import static com.barbermot.pilot.flight.FlightConfiguration.PinType.TX;
+import static com.barbermot.pilot.flight.FlightConfiguration.PinType.ULTRA_SOUND;
+import static com.barbermot.pilot.flight.state.FlightState.Type.CALIBRATION;
+import static com.barbermot.pilot.flight.state.FlightState.Type.EMERGENCY_LANDING;
+import static com.barbermot.pilot.flight.state.FlightState.Type.FAILED;
+import static com.barbermot.pilot.flight.state.FlightState.Type.GROUND;
+import static com.barbermot.pilot.flight.state.FlightState.Type.HOVER;
+import static com.barbermot.pilot.flight.state.FlightState.Type.LANDING;
+import static com.barbermot.pilot.flight.state.FlightState.Type.MANUAL_CONTROL;
+import static com.barbermot.pilot.flight.state.FlightState.Type.STABILIZED_HOVER;
+import static com.barbermot.pilot.flight.state.FlightState.Type.WAYPOINT_HOLD;
+import static com.barbermot.pilot.flight.state.FlightState.Type.WAYPOINT_TRACK;
 import ioio.lib.api.IOIO;
 import ioio.lib.api.Uart;
 import ioio.lib.api.exception.ConnectionLostException;
@@ -164,10 +188,8 @@ public class FlightBuilder {
     private void buildUart() throws ConnectionLostException {
         logger.info("Setting up UART");
         
-        uart = ioio.openUart(
-                config.getPinMap().get(FlightConfiguration.PinType.RX), config
-                        .getPinMap().get(FlightConfiguration.PinType.TX), 9600,
-                Uart.Parity.NONE, Uart.StopBits.ONE);
+        uart = ioio.openUart(config.getPinMap().get(RX), config.getPinMap()
+                .get(TX), 9600, Uart.Parity.NONE, Uart.StopBits.ONE);
     }
     
     private void buildLogger() {
@@ -224,25 +246,17 @@ public class FlightBuilder {
     private void buildQuadCopter() throws ConnectionLostException {
         logger.info("Setting up Quadcopter");
         
-        ufo = new QuadCopter(ioio,
-                map.get(FlightConfiguration.PinType.AILERON_OUT),
-                map.get(FlightConfiguration.PinType.RUDDER_OUT),
-                map.get(FlightConfiguration.PinType.THROTTLE_OUT),
-                map.get(FlightConfiguration.PinType.ELEVATOR_OUT),
-                map.get(FlightConfiguration.PinType.GAIN_OUT));
+        ufo = new QuadCopter(ioio, map.get(AILERON_OUT), map.get(RUDDER_OUT),
+                map.get(THROTTLE_OUT), map.get(ELEVATOR_OUT), map.get(GAIN_OUT));
         computer.setUfo(ufo);
     }
     
     private void buildRemoteControl() throws ConnectionLostException {
         logger.info("Setting up remote control");
         
-        RemoteControl rc = new RemoteControl(ioio, ufo,
-                map.get(FlightConfiguration.PinType.AILERON_IN),
-                map.get(FlightConfiguration.PinType.RUDDER_IN),
-                map.get(FlightConfiguration.PinType.THROTTLE_IN),
-                map.get(FlightConfiguration.PinType.ELEVATOR_IN),
-                map.get(FlightConfiguration.PinType.THROTTLE_MONITOR),
-                map.get(FlightConfiguration.PinType.GAIN_IN));
+        RemoteControl rc = new RemoteControl(ioio, ufo, map.get(AILERON_IN),
+                map.get(RUDDER_IN), map.get(THROTTLE_IN), map.get(ELEVATOR_IN),
+                map.get(THROTTLE_MONITOR), map.get(GAIN_IN));
         
         rc.setControlMask((char) ~RemoteControl.THROTTLE_MASK);
         computer.setRc(rc);
@@ -260,52 +274,52 @@ public class FlightBuilder {
     private void buildFlightStates() throws ConnectionLostException {
         logger.info("Setting up state machine");
         
-        FlightState.Type type = FlightState.Type.EMERGENCY_LANDING;
+        FlightState.Type type = EMERGENCY_LANDING;
         FlightState<?> state = new EmergencyLandingState();
         state.setType(type);
         state.setComputer(computer);
         stateMap.put(type, state);
         
-        type = FlightState.Type.FAILED;
+        type = FAILED;
         state = new FailedState();
         state.setType(type);
         state.setComputer(computer);
         stateMap.put(type, state);
         
-        type = FlightState.Type.GROUND;
+        type = GROUND;
         state = new GroundState();
         state.setType(type);
         state.setComputer(computer);
         stateMap.put(type, state);
         computer.setState(state);
         
-        type = FlightState.Type.CALIBRATION;
+        type = CALIBRATION;
         state = new CalibrationState();
         state.setType(type);
         state.setComputer(computer);
         stateMap.put(type, state);
         
-        type = FlightState.Type.HOVER;
+        type = HOVER;
         state = new HoverState();
         state.setType(type);
         state.setComputer(computer);
         stateMap.put(type, state);
         ((HoverState) state).setAutoThrottle(autoThrottle);
         
-        type = FlightState.Type.LANDING;
+        type = LANDING;
         state = new LandingState();
         state.setType(type);
         state.setComputer(computer);
         stateMap.put(type, state);
         ((LandingState) state).setAutoThrottle(autoThrottle);
         
-        type = FlightState.Type.MANUAL_CONTROL;
+        type = MANUAL_CONTROL;
         state = new ManualControlState();
         state.setType(type);
         state.setComputer(computer);
         stateMap.put(type, state);
         
-        type = FlightState.Type.STABILIZED_HOVER;
+        type = STABILIZED_HOVER;
         state = new StabilizedHoverState();
         state.setType(type);
         state.setComputer(computer);
@@ -315,7 +329,7 @@ public class FlightBuilder {
         ((StabilizedHoverState) state).setAutoAileron(autoAileron);
         ((StabilizedHoverState) state).setAutoRudder(autoRudder);
         
-        type = FlightState.Type.WAYPOINT_HOLD;
+        type = WAYPOINT_HOLD;
         state = new WaypointHoldState();
         state.setType(type);
         state.setComputer(computer);
@@ -326,7 +340,7 @@ public class FlightBuilder {
         ((WaypointHoldState) state).setAutoElevator(autoGpsElevator);
         ((WaypointHoldState) state).setAutoRudder(autoRudder);
         
-        type = FlightState.Type.WAYPOINT_TRACK;
+        type = WAYPOINT_TRACK;
         state = new WaypointTrackState();
         state.setType(type);
         state.setComputer(computer);
@@ -336,14 +350,14 @@ public class FlightBuilder {
     private void buildTransitions() throws ConnectionLostException {
         logger.info("Setting up transitions");
         
-        FlightState<?> abort = stateMap.get(FlightState.Type.FAILED);
+        FlightState<?> abort = stateMap.get(FAILED);
         for (FlightState<?> state : stateMap.values()) {
             if (state != abort) {
                 state.addTransition(abort);
             }
         }
         
-        FlightState<?> manual = stateMap.get(FlightState.Type.MANUAL_CONTROL);
+        FlightState<?> manual = stateMap.get(MANUAL_CONTROL);
         for (FlightState<?> state : stateMap.values()) {
             if (state != manual) {
                 state.addTransition(manual);
@@ -351,74 +365,53 @@ public class FlightBuilder {
         }
         
         // Ground
-        stateMap.get(FlightState.Type.GROUND).addTransition(
-                stateMap.get(FlightState.Type.HOVER));
-        stateMap.get(FlightState.Type.GROUND).addTransition(
-                stateMap.get(FlightState.Type.WAYPOINT_HOLD));
-        stateMap.get(FlightState.Type.GROUND).addTransition(
-                stateMap.get(FlightState.Type.CALIBRATION));
+        stateMap.get(GROUND).addTransition(stateMap.get(HOVER));
+        stateMap.get(GROUND).addTransition(stateMap.get(WAYPOINT_HOLD));
+        stateMap.get(GROUND).addTransition(stateMap.get(CALIBRATION));
         
         // Calibration
-        stateMap.get(FlightState.Type.CALIBRATION).addTransition(
-                stateMap.get(FlightState.Type.EMERGENCY_LANDING));
-        stateMap.get(FlightState.Type.CALIBRATION).addTransition(
-                stateMap.get(FlightState.Type.LANDING));
+        stateMap.get(CALIBRATION)
+                .addTransition(stateMap.get(EMERGENCY_LANDING));
+        stateMap.get(CALIBRATION).addTransition(stateMap.get(LANDING));
         
         // Hover
-        stateMap.get(FlightState.Type.HOVER).addTransition(
-                stateMap.get(FlightState.Type.HOVER));
-        stateMap.get(FlightState.Type.HOVER).addTransition(
-                stateMap.get(FlightState.Type.STABILIZED_HOVER));
-        stateMap.get(FlightState.Type.HOVER).addTransition(
-                stateMap.get(FlightState.Type.WAYPOINT_HOLD));
-        stateMap.get(FlightState.Type.HOVER).addTransition(
-                stateMap.get(FlightState.Type.EMERGENCY_LANDING));
-        stateMap.get(FlightState.Type.HOVER).addTransition(
-                stateMap.get(FlightState.Type.LANDING));
+        stateMap.get(HOVER).addTransition(stateMap.get(HOVER));
+        stateMap.get(HOVER).addTransition(stateMap.get(STABILIZED_HOVER));
+        stateMap.get(HOVER).addTransition(stateMap.get(WAYPOINT_HOLD));
+        stateMap.get(HOVER).addTransition(stateMap.get(EMERGENCY_LANDING));
+        stateMap.get(HOVER).addTransition(stateMap.get(LANDING));
         
         // Emergency Landing
-        stateMap.get(FlightState.Type.EMERGENCY_LANDING).addTransition(
-                stateMap.get(FlightState.Type.LANDING));
+        stateMap.get(EMERGENCY_LANDING).addTransition(stateMap.get(LANDING));
         
         // Landing
-        stateMap.get(FlightState.Type.LANDING).addTransition(
-                stateMap.get(FlightState.Type.HOVER));
-        stateMap.get(FlightState.Type.LANDING).addTransition(
-                stateMap.get(FlightState.Type.WAYPOINT_HOLD));
-        stateMap.get(FlightState.Type.LANDING).addTransition(
-                stateMap.get(FlightState.Type.EMERGENCY_LANDING));
-        stateMap.get(FlightState.Type.LANDING).addTransition(
-                stateMap.get(FlightState.Type.GROUND));
+        stateMap.get(LANDING).addTransition(stateMap.get(HOVER));
+        stateMap.get(LANDING).addTransition(stateMap.get(WAYPOINT_HOLD));
+        stateMap.get(LANDING).addTransition(stateMap.get(EMERGENCY_LANDING));
+        stateMap.get(LANDING).addTransition(stateMap.get(GROUND));
         
         // Stabilized Hover
-        stateMap.get(FlightState.Type.STABILIZED_HOVER).addTransition(
-                stateMap.get(FlightState.Type.HOVER));
-        stateMap.get(FlightState.Type.STABILIZED_HOVER).addTransition(
-                stateMap.get(FlightState.Type.WAYPOINT_HOLD));
-        stateMap.get(FlightState.Type.STABILIZED_HOVER).addTransition(
-                stateMap.get(FlightState.Type.STABILIZED_HOVER));
-        stateMap.get(FlightState.Type.STABILIZED_HOVER).addTransition(
-                stateMap.get(FlightState.Type.LANDING));
-        stateMap.get(FlightState.Type.STABILIZED_HOVER).addTransition(
-                stateMap.get(FlightState.Type.EMERGENCY_LANDING));
+        stateMap.get(STABILIZED_HOVER).addTransition(stateMap.get(HOVER));
+        stateMap.get(STABILIZED_HOVER).addTransition(
+                stateMap.get(WAYPOINT_HOLD));
+        stateMap.get(STABILIZED_HOVER).addTransition(
+                stateMap.get(STABILIZED_HOVER));
+        stateMap.get(STABILIZED_HOVER).addTransition(stateMap.get(LANDING));
+        stateMap.get(STABILIZED_HOVER).addTransition(
+                stateMap.get(EMERGENCY_LANDING));
         
         // Waypoint hold
-        stateMap.get(FlightState.Type.WAYPOINT_HOLD).addTransition(
-                stateMap.get(FlightState.Type.HOVER));
-        stateMap.get(FlightState.Type.WAYPOINT_HOLD).addTransition(
-                stateMap.get(FlightState.Type.STABILIZED_HOVER));
-        stateMap.get(FlightState.Type.WAYPOINT_HOLD).addTransition(
-                stateMap.get(FlightState.Type.WAYPOINT_HOLD));
-        stateMap.get(FlightState.Type.WAYPOINT_HOLD).addTransition(
-                stateMap.get(FlightState.Type.EMERGENCY_LANDING));
-        stateMap.get(FlightState.Type.WAYPOINT_HOLD).addTransition(
-                stateMap.get(FlightState.Type.LANDING));
+        stateMap.get(WAYPOINT_HOLD).addTransition(stateMap.get(HOVER));
+        stateMap.get(WAYPOINT_HOLD).addTransition(
+                stateMap.get(STABILIZED_HOVER));
+        stateMap.get(WAYPOINT_HOLD).addTransition(stateMap.get(WAYPOINT_HOLD));
+        stateMap.get(WAYPOINT_HOLD).addTransition(
+                stateMap.get(EMERGENCY_LANDING));
+        stateMap.get(WAYPOINT_HOLD).addTransition(stateMap.get(LANDING));
         
         // Manual Control
-        stateMap.get(FlightState.Type.MANUAL_CONTROL).addTransition(
-                stateMap.get(FlightState.Type.HOVER));
-        stateMap.get(FlightState.Type.MANUAL_CONTROL).addTransition(
-                stateMap.get(FlightState.Type.LANDING));
+        stateMap.get(MANUAL_CONTROL).addTransition(stateMap.get(HOVER));
+        stateMap.get(MANUAL_CONTROL).addTransition(stateMap.get(LANDING));
         
     }
     
@@ -428,8 +421,7 @@ public class FlightBuilder {
         signalManager = SignalManagerFactory.getManager(ioio, sensorManager,
                 locationManager, scheduler);
         Signal signal = signalManager.getUltraSoundSignal(
-                config.getMinTimeUltraSound(),
-                map.get(FlightConfiguration.PinType.ULTRA_SOUND));
+                config.getMinTimeUltraSound(), map.get(ULTRA_SOUND));
         
         signal.registerListener(new SignalListener() {
             

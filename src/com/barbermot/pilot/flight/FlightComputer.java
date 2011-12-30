@@ -1,5 +1,14 @@
 package com.barbermot.pilot.flight;
 
+import static com.barbermot.pilot.flight.state.FlightState.Type.CALIBRATION;
+import static com.barbermot.pilot.flight.state.FlightState.Type.EMERGENCY_LANDING;
+import static com.barbermot.pilot.flight.state.FlightState.Type.FAILED;
+import static com.barbermot.pilot.flight.state.FlightState.Type.GROUND;
+import static com.barbermot.pilot.flight.state.FlightState.Type.HOVER;
+import static com.barbermot.pilot.flight.state.FlightState.Type.LANDING;
+import static com.barbermot.pilot.flight.state.FlightState.Type.MANUAL_CONTROL;
+import static com.barbermot.pilot.flight.state.FlightState.Type.STABILIZED_HOVER;
+import static com.barbermot.pilot.flight.state.FlightState.Type.WAYPOINT_HOLD;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.io.PrintStream;
@@ -143,11 +152,11 @@ public class FlightComputer implements Runnable {
     
     public synchronized void takeoff(float height)
             throws ConnectionLostException {
-        state.transition(new StateEvent<Float>(FlightState.Type.HOVER, height));
+        state.transition(new StateEvent<Float>(HOVER, height));
     }
     
     public synchronized void hover(float height) throws ConnectionLostException {
-        state.transition(new StateEvent<Float>(FlightState.Type.HOVER, height));
+        state.transition(new StateEvent<Float>(HOVER, height));
     }
     
     public void waypoint(float height) throws ConnectionLostException {
@@ -155,52 +164,47 @@ public class FlightComputer implements Runnable {
         try {
             wp = (Waypoint) currentLocation.clone();
             wp.altitude = this.getZeroGpsHeight() + height;
-            state.transition(new StateEvent<Waypoint>(
-                    FlightState.Type.WAYPOINT_HOLD, wp));
+            state.transition(new StateEvent<Waypoint>(WAYPOINT_HOLD, wp));
         } catch (CloneNotSupportedException e) {
             logger.warning("Waypoint clone not supported.");
         }
     }
     
     public synchronized void ground() throws ConnectionLostException {
-        state.transition(new StateEvent<Void>(FlightState.Type.GROUND, null));
+        state.transition(new StateEvent<Void>(GROUND, null));
     }
     
     public synchronized void land() throws ConnectionLostException {
-        state.transition(new StateEvent<Float>(FlightState.Type.LANDING, null));
+        state.transition(new StateEvent<Float>(LANDING, null));
     }
     
     public synchronized void emergencyDescent() throws ConnectionLostException {
-        state.transition(new StateEvent<Float>(
-                FlightState.Type.EMERGENCY_LANDING, height));
+        state.transition(new StateEvent<Float>(EMERGENCY_LANDING, height));
     }
     
     public synchronized void manualControl() throws ConnectionLostException {
-        state.transition(new StateEvent<Float>(FlightState.Type.MANUAL_CONTROL,
-                null));
+        state.transition(new StateEvent<Float>(MANUAL_CONTROL, null));
     }
     
     public synchronized void autoControl() throws ConnectionLostException {
-        state.transition(new StateEvent<Void>(FlightState.Type.LANDING, null));
+        state.transition(new StateEvent<Void>(LANDING, null));
     }
     
     public synchronized void abort() throws ConnectionLostException {
-        state.transition(new StateEvent<Float>(FlightState.Type.FAILED, null));
+        state.transition(new StateEvent<Float>(FAILED, null));
     }
     
     public synchronized void stabilize(boolean b)
             throws ConnectionLostException {
         if (b) {
-            state.transition(new StateEvent<Float>(
-                    FlightState.Type.STABILIZED_HOVER, goalHeight));
+            state.transition(new StateEvent<Float>(STABILIZED_HOVER, goalHeight));
         } else {
-            state.transition(new StateEvent<Float>(FlightState.Type.HOVER,
-                    goalHeight));
+            state.transition(new StateEvent<Float>(HOVER, goalHeight));
         }
     }
     
     public synchronized void forward(int speed) {
-        if (state.getType() == FlightState.Type.STABILIZED_HOVER) {
+        if (state.getType() == STABILIZED_HOVER) {
             float angle = map(speed, minSpeed, maxSpeed, minTiltAngle,
                     maxTiltAngle);
             logger.info("Setting pitch angle to: " + angle);
@@ -209,7 +213,7 @@ public class FlightComputer implements Runnable {
     }
     
     public synchronized void sideways(int speed) {
-        if (state.getType() == FlightState.Type.STABILIZED_HOVER) {
+        if (state.getType() == STABILIZED_HOVER) {
             float angle = map(speed, minSpeed, maxSpeed, minTiltAngle,
                     maxTiltAngle);
             logger.info("Setting roll angle to: " + angle);
@@ -218,7 +222,7 @@ public class FlightComputer implements Runnable {
     }
     
     public synchronized void rotate(int angle) {
-        if (state.getType() == FlightState.Type.STABILIZED_HOVER) {
+        if (state.getType() == STABILIZED_HOVER) {
             float radian = map(angle, -180, 180, (float) -Math.PI,
                     (float) Math.PI);
             logger.info("Setting yaw angle to: " + radian);
@@ -245,8 +249,7 @@ public class FlightComputer implements Runnable {
     }
     
     public void calibrateControls() throws ConnectionLostException {
-        state.transition(new StateEvent<Float>(FlightState.Type.CALIBRATION,
-                null));
+        state.transition(new StateEvent<Float>(CALIBRATION, null));
     }
     
     public synchronized void run() {
@@ -257,7 +260,7 @@ public class FlightComputer implements Runnable {
             
             // allow for manual inputs first
             if (rc.getControlMask() == RemoteControl.FULL_MANUAL
-                    && state.getType() != FlightState.Type.MANUAL_CONTROL) {
+                    && state.getType() != MANUAL_CONTROL) {
                 logger.info("Manual control is engaged");
                 manualControl();
             }
