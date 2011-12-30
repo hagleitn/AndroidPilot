@@ -154,7 +154,7 @@ public class FlightComputer implements Runnable {
         Waypoint wp;
         try {
             wp = (Waypoint) currentLocation.clone();
-            wp.altitude = height;
+            wp.altitude = this.getGpsHeight() + height;
             state.transition(new StateEvent<Waypoint>(
                     FlightState.Type.WAYPOINT_HOLD, wp));
         } catch (CloneNotSupportedException e) {
