@@ -18,9 +18,7 @@ public class CalibrationState extends FlightState<Void> {
     
     @Override
     public void enter(Void arg) throws ConnectionLostException {
-        ufo = computer.getUfo();
-        ufo.throttle(currentThrottle);
-        computer.setCurrentThrottle(currentThrottle);
+        computer.getUfo().throttle(currentThrottle);
     }
     
     @Override
@@ -43,9 +41,7 @@ public class CalibrationState extends FlightState<Void> {
                     .getCalibrationTimeStep()) {
                 currentThrottle += FlightConfiguration.get()
                         .getThrottleStepForCalibration();
-                ufo = computer.getUfo();
-                ufo.throttle(currentThrottle);
-                computer.setCurrentThrottle(currentThrottle);
+                computer.getUfo().throttle(currentThrottle);
                 lastAdjustmentMillis = millis;
             }
         }

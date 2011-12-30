@@ -88,11 +88,6 @@ public class FlightComputer implements Runnable {
     private volatile long            lastTimeHeightSignal;
     private volatile long            lastTimeGpsHeight;
     
-    private int                      currentThrottle;
-    private int                      currentElevator;
-    private int                      currentAileron;
-    private int                      currentRudder;
-    
     private int                      zeroThrottle;
     private boolean                  isCalibrated;
     
@@ -468,38 +463,6 @@ public class FlightComputer implements Runnable {
     
     public void setTime(long time) {
         this.time = time;
-    }
-    
-    public int getCurrentThrottle() {
-        return currentThrottle;
-    }
-    
-    public void setCurrentThrottle(int currentThrottle) {
-        this.currentThrottle = currentThrottle;
-    }
-    
-    public int getCurrentElevator() {
-        return currentElevator;
-    }
-    
-    public void setCurrentElevator(int currentElevator) {
-        this.currentElevator = currentElevator;
-    }
-    
-    public int getCurrentAileron() {
-        return currentAileron;
-    }
-    
-    public void setCurrentAileron(int currentAileron) {
-        this.currentAileron = currentAileron;
-    }
-    
-    public int getCurrentRudder() {
-        return currentRudder;
-    }
-    
-    public void setCurrentRudder(int currentRudder) {
-        this.currentRudder = currentRudder;
     }
     
     public void setGpsHeight(float gpsHeight) {

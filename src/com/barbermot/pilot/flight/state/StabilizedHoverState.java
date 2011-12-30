@@ -21,9 +21,9 @@ public class StabilizedHoverState extends HoverState {
             controlMask = (char) (controlMask & ~mask);
         } else {
             controlMask = (char) (controlMask | mask);
-            computer.setCurrentElevator(QuadCopter.STOP_SPEED);
-            computer.setCurrentAileron(QuadCopter.STOP_SPEED);
-            computer.setCurrentRudder(QuadCopter.STOP_SPEED);
+            computer.getUfo().elevator(QuadCopter.STOP_SPEED);
+            computer.getUfo().aileron(QuadCopter.STOP_SPEED);
+            computer.getUfo().rudder(QuadCopter.STOP_SPEED);
         }
         computer.getRc().setControlMask(controlMask);
         

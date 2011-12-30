@@ -16,17 +16,9 @@ public class GroundState extends FlightState<Void> {
         logger.info("Entering ground state");
         
         computer.getUfo().throttle(QuadCopter.MIN_SPEED);
-        computer.setCurrentThrottle(QuadCopter.MIN_SPEED);
-        
         computer.getUfo().aileron(QuadCopter.STOP_SPEED);
-        computer.setCurrentAileron(QuadCopter.STOP_SPEED);
-        
         computer.getUfo().rudder(QuadCopter.STOP_SPEED);
-        computer.setCurrentRudder(QuadCopter.STOP_SPEED);
-        
         computer.getUfo().elevator(QuadCopter.STOP_SPEED);
-        computer.setCurrentElevator(QuadCopter.STOP_SPEED);
-        
         computer.getUfo().adjustGain(QuadCopter.STOP_SPEED);
     }
     

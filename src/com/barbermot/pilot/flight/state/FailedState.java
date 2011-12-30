@@ -16,7 +16,6 @@ public class FailedState extends FlightState<Void> {
         logger.info("Entering failed state");
         
         computer.getUfo().throttle(QuadCopter.MIN_SPEED);
-        computer.setCurrentThrottle(QuadCopter.MIN_SPEED);
     }
     
     @Override

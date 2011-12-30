@@ -8,7 +8,6 @@ public class ElevatorControlListener extends FlightControlListener {
     public void adjust(float x) throws ConnectionLostException {
         int currentElevator = (int) limit(x, computer.getMinTilt(),
                 computer.getMaxTilt());
-        computer.setCurrentElevator(currentElevator);
         computer.getUfo().elevator(currentElevator);
     }
     

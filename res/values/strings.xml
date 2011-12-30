@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">QuadCopter</string>
     <string name="flight_service_running">Select to disable auto pilot</string>
-    <string name="flight_service_stopped">Android Pilot has stopped.</string>
+    <string name="flight_service_stopped">Android Pilot has stopped</string>
     <string name="flight_service_disable_message">Android Pilot is running</string>
 </resources>

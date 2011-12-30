@@ -14,9 +14,7 @@ public class EmergencyLandingState extends FlightState<Void> {
         logger.info("Entering emergency landing state");
         
         int throttle = computer.getEmergencyDescentThrottle();
-        
         computer.getUfo().throttle(throttle);
-        computer.setCurrentThrottle(throttle);
     }
     
     @Override
