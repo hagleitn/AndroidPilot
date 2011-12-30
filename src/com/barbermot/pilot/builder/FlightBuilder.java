@@ -274,90 +274,52 @@ public class FlightBuilder {
     private void buildFlightStates() throws ConnectionLostException {
         logger.info("Setting up state machine");
         
-        FlightState.Type type = EMERGENCY_LANDING;
-        FlightState<?> state = new EmergencyLandingState();
-        state.setType(type);
-        state.setComputer(computer);
-        stateMap.put(type, state);
+        FlightState<?> state = null;
         
-        type = FAILED;
-        state = new FailedState();
-        state.setType(type);
-        state.setComputer(computer);
-        stateMap.put(type, state);
+        setupState(new EmergencyLandingState(), EMERGENCY_LANDING);
         
-        type = GROUND;
-        state = new GroundState();
-        state.setType(type);
-        state.setComputer(computer);
-        stateMap.put(type, state);
+        setupState(new FailedState(), FAILED);
+        
+        state = setupState(new GroundState(), GROUND);
         computer.setState(state);
         
-        type = CALIBRATION;
-        state = new CalibrationState();
-        state.setType(type);
-        state.setComputer(computer);
-        stateMap.put(type, state);
+        setupState(new CalibrationState(), CALIBRATION);
         
-        type = HOVER;
-        state = new HoverState();
-        state.setType(type);
-        state.setComputer(computer);
-        stateMap.put(type, state);
+        state = setupState(new HoverState(), HOVER);
         ((HoverState) state).setAutoThrottle(autoThrottle);
         
-        type = LANDING;
-        state = new LandingState();
-        state.setType(type);
-        state.setComputer(computer);
-        stateMap.put(type, state);
+        state = setupState(new LandingState(), LANDING);
         ((LandingState) state).setAutoThrottle(autoThrottle);
         
-        type = MANUAL_CONTROL;
-        state = new ManualControlState();
-        state.setType(type);
-        state.setComputer(computer);
-        stateMap.put(type, state);
+        setupState(new ManualControlState(), MANUAL_CONTROL);
         
-        type = STABILIZED_HOVER;
-        state = new StabilizedHoverState();
-        state.setType(type);
-        state.setComputer(computer);
-        stateMap.put(type, state);
+        state = setupState(new StabilizedHoverState(), STABILIZED_HOVER);
         ((StabilizedHoverState) state).setAutoThrottle(autoThrottle);
         ((StabilizedHoverState) state).setAutoElevator(autoElevator);
         ((StabilizedHoverState) state).setAutoAileron(autoAileron);
         ((StabilizedHoverState) state).setAutoRudder(autoRudder);
         
-        type = WAYPOINT_HOLD;
-        state = new WaypointHoldState();
-        state.setType(type);
-        state.setComputer(computer);
-        stateMap.put(type, state);
+        state = setupState(new WaypointHoldState(), WAYPOINT_HOLD);
         ((WaypointHoldState) state).setAutoUltraSoundThrottle(autoThrottle);
         ((WaypointHoldState) state).setAutoGpsThrottle(autoGpsThrottle);
         ((WaypointHoldState) state).setAutoAileron(autoGpsAileron);
         ((WaypointHoldState) state).setAutoElevator(autoGpsElevator);
         ((WaypointHoldState) state).setAutoRudder(autoRudder);
         
-        type = WAYPOINT_TRACK;
-        state = new WaypointTrackState();
-        state.setType(type);
-        state.setComputer(computer);
-        stateMap.put(type, state);
+        setupState(new WaypointTrackState(), WAYPOINT_TRACK);
     }
     
     private void buildTransitions() throws ConnectionLostException {
         logger.info("Setting up transitions");
         
-        FlightState<?> abort = stateMap.get(FAILED);
+        FlightState<?> abort = state(FAILED);
         for (FlightState<?> state : stateMap.values()) {
             if (state != abort) {
                 state.addTransition(abort);
             }
         }
         
-        FlightState<?> manual = stateMap.get(MANUAL_CONTROL);
+        FlightState<?> manual = state(MANUAL_CONTROL);
         for (FlightState<?> state : stateMap.values()) {
             if (state != manual) {
                 state.addTransition(manual);
@@ -365,53 +327,47 @@ public class FlightBuilder {
         }
         
         // Ground
-        stateMap.get(GROUND).addTransition(stateMap.get(HOVER));
-        stateMap.get(GROUND).addTransition(stateMap.get(WAYPOINT_HOLD));
-        stateMap.get(GROUND).addTransition(stateMap.get(CALIBRATION));
+        state(GROUND).addTransition(state(HOVER));
+        state(GROUND).addTransition(state(WAYPOINT_HOLD));
+        state(GROUND).addTransition(state(CALIBRATION));
         
         // Calibration
-        stateMap.get(CALIBRATION)
-                .addTransition(stateMap.get(EMERGENCY_LANDING));
-        stateMap.get(CALIBRATION).addTransition(stateMap.get(LANDING));
+        state(CALIBRATION).addTransition(state(EMERGENCY_LANDING));
+        state(CALIBRATION).addTransition(state(LANDING));
         
         // Hover
-        stateMap.get(HOVER).addTransition(stateMap.get(HOVER));
-        stateMap.get(HOVER).addTransition(stateMap.get(STABILIZED_HOVER));
-        stateMap.get(HOVER).addTransition(stateMap.get(WAYPOINT_HOLD));
-        stateMap.get(HOVER).addTransition(stateMap.get(EMERGENCY_LANDING));
-        stateMap.get(HOVER).addTransition(stateMap.get(LANDING));
+        state(HOVER).addTransition(state(HOVER));
+        state(HOVER).addTransition(state(STABILIZED_HOVER));
+        state(HOVER).addTransition(state(WAYPOINT_HOLD));
+        state(HOVER).addTransition(state(EMERGENCY_LANDING));
+        state(HOVER).addTransition(state(LANDING));
         
         // Emergency Landing
-        stateMap.get(EMERGENCY_LANDING).addTransition(stateMap.get(LANDING));
+        state(EMERGENCY_LANDING).addTransition(state(LANDING));
         
         // Landing
-        stateMap.get(LANDING).addTransition(stateMap.get(HOVER));
-        stateMap.get(LANDING).addTransition(stateMap.get(WAYPOINT_HOLD));
-        stateMap.get(LANDING).addTransition(stateMap.get(EMERGENCY_LANDING));
-        stateMap.get(LANDING).addTransition(stateMap.get(GROUND));
+        state(LANDING).addTransition(state(HOVER));
+        state(LANDING).addTransition(state(WAYPOINT_HOLD));
+        state(LANDING).addTransition(state(EMERGENCY_LANDING));
+        state(LANDING).addTransition(state(GROUND));
         
         // Stabilized Hover
-        stateMap.get(STABILIZED_HOVER).addTransition(stateMap.get(HOVER));
-        stateMap.get(STABILIZED_HOVER).addTransition(
-                stateMap.get(WAYPOINT_HOLD));
-        stateMap.get(STABILIZED_HOVER).addTransition(
-                stateMap.get(STABILIZED_HOVER));
-        stateMap.get(STABILIZED_HOVER).addTransition(stateMap.get(LANDING));
-        stateMap.get(STABILIZED_HOVER).addTransition(
-                stateMap.get(EMERGENCY_LANDING));
+        state(STABILIZED_HOVER).addTransition(state(HOVER));
+        state(STABILIZED_HOVER).addTransition(state(WAYPOINT_HOLD));
+        state(STABILIZED_HOVER).addTransition(state(STABILIZED_HOVER));
+        state(STABILIZED_HOVER).addTransition(state(LANDING));
+        state(STABILIZED_HOVER).addTransition(state(EMERGENCY_LANDING));
         
         // Waypoint hold
-        stateMap.get(WAYPOINT_HOLD).addTransition(stateMap.get(HOVER));
-        stateMap.get(WAYPOINT_HOLD).addTransition(
-                stateMap.get(STABILIZED_HOVER));
-        stateMap.get(WAYPOINT_HOLD).addTransition(stateMap.get(WAYPOINT_HOLD));
-        stateMap.get(WAYPOINT_HOLD).addTransition(
-                stateMap.get(EMERGENCY_LANDING));
-        stateMap.get(WAYPOINT_HOLD).addTransition(stateMap.get(LANDING));
+        state(WAYPOINT_HOLD).addTransition(state(HOVER));
+        state(WAYPOINT_HOLD).addTransition(state(STABILIZED_HOVER));
+        state(WAYPOINT_HOLD).addTransition(state(WAYPOINT_HOLD));
+        state(WAYPOINT_HOLD).addTransition(state(EMERGENCY_LANDING));
+        state(WAYPOINT_HOLD).addTransition(state(LANDING));
         
         // Manual Control
-        stateMap.get(MANUAL_CONTROL).addTransition(stateMap.get(HOVER));
-        stateMap.get(MANUAL_CONTROL).addTransition(stateMap.get(LANDING));
+        state(MANUAL_CONTROL).addTransition(state(HOVER));
+        state(MANUAL_CONTROL).addTransition(state(LANDING));
         
     }
     
@@ -491,5 +447,17 @@ public class FlightBuilder {
         signal.registerListener(autoGpsAileron);
         
         futures.addAll(signalManager.getFutures());
+    }
+    
+    private FlightState<?> state(FlightState.Type type) {
+        return stateMap.get(type);
+    }
+    
+    private FlightState<?> setupState(FlightState<?> state,
+            FlightState.Type type) {
+        state.setType(type);
+        state.setComputer(computer);
+        stateMap.put(type, state);
+        return state;
     }
 }

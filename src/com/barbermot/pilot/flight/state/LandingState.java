@@ -11,7 +11,7 @@ public class LandingState extends FlightState<Void> {
     
     @Override
     public boolean guard(Void arg) throws ConnectionLostException {
-        return computer.isCalibrated();
+        return true;
     }
     
     @Override
