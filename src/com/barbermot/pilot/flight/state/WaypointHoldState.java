@@ -41,7 +41,8 @@ public class WaypointHoldState extends FlightState<Waypoint> {
         switchAutoControl(true);
         
         autoUltraSoundThrottle.setConfiguration(computer.getHoverConf());
-        autoUltraSoundThrottle.setGoal(arg.altitude);
+        autoUltraSoundThrottle.setGoal(arg.altitude
+                - computer.getZeroGpsHeight());
         
         autoGpsThrottle.setConfiguration(computer.getGpsConf());
         autoGpsThrottle.setGoal(arg.altitude);
