@@ -27,6 +27,17 @@ public class Parser {
             char c = scanner.next(".").charAt(0);
             switch (c) {
                 
+                // manual calibration
+                case 'a':
+                case 'A':
+                    if (scanner.hasNextInt()) {
+                        x = scanner.nextInt();
+                        computer.setZeroThrottle(x);
+                    } else {
+                        fail(cmd);
+                    }
+                    break;
+                
                 // k calibrates the throttle
                 case 'k':
                 case 'K':
