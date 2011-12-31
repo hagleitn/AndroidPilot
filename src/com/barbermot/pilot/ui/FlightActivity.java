@@ -9,6 +9,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Intent;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -24,6 +25,7 @@ import com.barbermot.pilot.R;
 public class FlightActivity extends Activity {
     
     private static final String TAG = "FlightActivity";
+    Camera                      camera;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
