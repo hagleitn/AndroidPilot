@@ -93,9 +93,18 @@ public class FlightConfiguration {
     
     private Map<PinType, Integer> pinMap;
     
+    private boolean               isSimulation;
+    private ConnectionType        connectionType;
+    private String                serialUrl;
+    private int                   serialPort;
+    
     public enum PinType {
         ULTRA_SOUND, AILERON_IN, RUDDER_IN, THROTTLE_IN, ELEVATOR_IN, GAIN_IN, AILERON_OUT, RUDDER_OUT, THROTTLE_OUT, ELEVATOR_OUT, GAIN_OUT, RX, TX, THROTTLE_MONITOR
     };
+    
+    public enum ConnectionType {
+        UART, TCP
+    }
     
     private static FlightConfiguration config;
     
@@ -235,5 +244,37 @@ public class FlightConfiguration {
     
     public long getCalibrationTimeStep() {
         return CALIBRATION_TIME_STEP;
+    }
+    
+    public void setSimulation(boolean isSimulation) {
+        this.isSimulation = isSimulation;
+    }
+    
+    public boolean isSimulation() {
+        return isSimulation;
+    }
+    
+    public void setConnectionType(ConnectionType connectionType) {
+        this.connectionType = connectionType;
+    }
+    
+    public ConnectionType getConnectionType() {
+        return connectionType;
+    }
+    
+    public void setSerialUrl(String serialUrl) {
+        this.serialUrl = serialUrl;
+    }
+    
+    public String getSerialUrl() {
+        return serialUrl;
+    }
+    
+    public void setSerialPort(int serialPort) {
+        this.serialPort = serialPort;
+    }
+    
+    public int getSerialPort() {
+        return serialPort;
     }
 }

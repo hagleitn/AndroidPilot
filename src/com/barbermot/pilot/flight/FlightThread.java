@@ -22,6 +22,8 @@ import android.location.LocationManager;
 import com.barbermot.pilot.builder.BuildException;
 import com.barbermot.pilot.builder.FlightBuilder;
 import com.barbermot.pilot.signal.SignalManager;
+import com.barbermot.pilot.simulator.IOIOSimulation;
+import com.barbermot.pilot.simulator.PhysicsEngine;
 import com.barbermot.pilot.util.AndroidHandler;
 import com.barbermot.pilot.util.TerseFormatter;
 
@@ -74,7 +76,12 @@ public class FlightThread extends Thread {
                     if (abort) {
                         break;
                     }
-                    ioio = IOIOFactory.create();
+                    if (FlightConfiguration.get().isSimulation()) {
+                        ioio = new IOIOSimulation(new PhysicsEngine());
+                        Logger.getLogger("").addHandler(new AndroidHandler());
+                    } else {
+                        ioio = IOIOFactory.create();
+                    }
                 }
                 ioio.waitForConnect();
                 connected = true;
@@ -168,7 +175,7 @@ public class FlightThread extends Thread {
             signalManager = builder.getSignalManager();
             led = ioio.openDigitalOutput(0);
         } catch (BuildException e) {
-            e.printStackTrace();
+            e.getCause().printStackTrace();
         }
         logger.info("Setup complete.");
     }

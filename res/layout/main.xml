@@ -11,4 +11,11 @@
 	android:layout_height="wrap_content" 
 	android:id="@+id/togglebutton">
 </ToggleButton>
+<CheckBox android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/checkBox1" android:checked="false" android:text="@string/flight_service_simulation_flag"></CheckBox>
+<RadioGroup android:id="@+id/radioGroup1" android:layout_width="wrap_content" android:layout_height="wrap_content">
+    <RadioButton android:layout_width="wrap_content" android:id="@+id/radio0" android:layout_height="wrap_content" android:checked="true" android:text="@string/flight_service_tcp"></RadioButton>
+    <RadioButton android:layout_width="wrap_content" android:id="@+id/radio1" android:layout_height="wrap_content" android:text="@string/flight_service_xbee" android:checked="true"></RadioButton>
+</RadioGroup>
+<EditText android:layout_width="match_parent" android:id="@+id/editText1" android:layout_height="wrap_content" android:text="@string/flight_service_serial_url"></EditText>
+<EditText android:layout_width="match_parent" android:id="@+id/editText2" android:layout_height="wrap_content" android:text="@string/flight_service_serial_port"></EditText>
 </LinearLayout>

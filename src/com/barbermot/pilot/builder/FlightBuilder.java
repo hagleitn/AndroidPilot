@@ -28,8 +28,12 @@ import ioio.lib.api.IOIO;
 import ioio.lib.api.Uart;
 import ioio.lib.api.exception.ConnectionLostException;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,6 +51,7 @@ import com.barbermot.pilot.flight.AileronControlListener;
 import com.barbermot.pilot.flight.ElevatorControlListener;
 import com.barbermot.pilot.flight.FlightComputer;
 import com.barbermot.pilot.flight.FlightConfiguration;
+import com.barbermot.pilot.flight.FlightConfiguration.ConnectionType;
 import com.barbermot.pilot.flight.FlightControlListener;
 import com.barbermot.pilot.flight.RudderControlListener;
 import com.barbermot.pilot.flight.ThrottleControlListener;
@@ -105,6 +110,10 @@ public class FlightBuilder {
     
     private IOIO                                      ioio;
     private Uart                                      uart;
+    private Socket                                    socket;
+    
+    private InputStream                               in;
+    private OutputStream                              out;
     
     private AutoControl                               autoThrottle;
     private AutoControl                               autoAileron;
@@ -144,6 +153,8 @@ public class FlightBuilder {
             
             buildScheduler();
             buildUart();
+            buildSocket();
+            buildStreams();
             buildPrinter();
             buildQuadCopter();
             buildRemoteControl();
@@ -157,8 +168,7 @@ public class FlightBuilder {
             futures.add(scheduler.scheduleWithFixedDelay(computer, 0,
                     config.getMinTimeFlightComputer(), TimeUnit.MILLISECONDS));
         } catch (ConnectionLostException e) {
-            e.printStackTrace();
-            throw new BuildException();
+            throw new BuildException(e);
         }
         return computer;
     }
@@ -178,6 +188,40 @@ public class FlightBuilder {
         return signalManager;
     }
     
+    private void buildStreams() throws BuildException {
+        logger.info("Setting up IO streams");
+        if (config.getConnectionType() == ConnectionType.TCP) {
+            try {
+                out = socket.getOutputStream();
+                in = socket.getInputStream();
+            } catch (IOException e) {
+                throw new BuildException(e);
+            }
+        } else {
+            in = uart.getInputStream();
+            out = uart.getOutputStream();
+        }
+        
+    }
+    
+    private void buildSocket() throws BuildException {
+        if (config.getConnectionType() == ConnectionType.TCP) {
+            logger.info("Setting up socket (" + config.getSerialUrl() + ", "
+                    + config.getSerialPort() + ")");
+            try {
+                // ServerSocket server = new
+                // ServerSocket(config.getSerialPort());
+                // socket = server.accept();
+                socket = new Socket(config.getSerialUrl(),
+                        config.getSerialPort());
+            } catch (UnknownHostException e) {
+                throw new BuildException(e);
+            } catch (IOException e) {
+                throw new BuildException(e);
+            }
+        }
+    }
+    
     private void buildScheduler() {
         logger.info("Setting up scheduler");
         
@@ -186,10 +230,12 @@ public class FlightBuilder {
     }
     
     private void buildUart() throws ConnectionLostException {
-        logger.info("Setting up UART");
-        
-        uart = ioio.openUart(config.getPinMap().get(RX), config.getPinMap()
-                .get(TX), 9600, Uart.Parity.NONE, Uart.StopBits.ONE);
+        if (config.getConnectionType() == ConnectionType.UART) {
+            logger.info("Setting up UART");
+            
+            uart = ioio.openUart(config.getPinMap().get(RX), config.getPinMap()
+                    .get(TX), 9600, Uart.Parity.NONE, Uart.StopBits.ONE);
+        }
     }
     
     private void buildLogger() {
@@ -204,7 +250,6 @@ public class FlightBuilder {
     private void buildSerialController() throws ConnectionLostException {
         logger.info("Setting up serial controller");
         
-        InputStream in = uart.getInputStream();
         SerialController controller = new SerialController(computer, ';', in,
                 printer);
         futures.add(scheduler.submit(controller));
@@ -268,7 +313,7 @@ public class FlightBuilder {
     private void buildPrinter() throws ConnectionLostException {
         logger.info("Setting up printer");
         
-        printer = new PrintStream(uart.getOutputStream());
+        printer = new PrintStream(out);
     }
     
     private void buildFlightStates() throws ConnectionLostException {

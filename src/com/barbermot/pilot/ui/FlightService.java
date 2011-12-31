@@ -7,11 +7,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.hardware.SensorManager;
 import android.location.LocationManager;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.barbermot.pilot.R;
+import com.barbermot.pilot.flight.FlightConfiguration;
+import com.barbermot.pilot.flight.FlightConfiguration.ConnectionType;
 import com.barbermot.pilot.flight.FlightThread;
 
 public class FlightService extends Service {
@@ -22,6 +25,27 @@ public class FlightService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "starting service");
+        Bundle b = intent.getExtras();
+        
+        FlightConfiguration
+                .get()
+                .setSimulation(
+                        b.getBoolean(getString(R.string.flight_service_simulation_flag)));
+        
+        ConnectionType connectionType = ConnectionType.UART;
+        if (b.getString(getString(R.string.flight_service_serial_flag)).equals(
+                getString(R.string.flight_service_tcp))) {
+            connectionType = ConnectionType.TCP;
+        }
+        
+        FlightConfiguration.get().setConnectionType(connectionType);
+        FlightConfiguration
+                .get()
+                .setSerialUrl(
+                        b.getString(getString(R.string.flight_service_serial_url_flag)));
+        FlightConfiguration.get().setSerialPort(
+                b.getInt(getString(R.string.flight_service_serial_port_flag)));
+        
         flightThread.start();
         return START_STICKY;
     }

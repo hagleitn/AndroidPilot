@@ -4,4 +4,12 @@
     <string name="flight_service_running">Select to disable auto pilot</string>
     <string name="flight_service_stopped">Android Pilot has stopped</string>
     <string name="flight_service_disable_message">Android Pilot is running</string>
+    <string name="flight_service_simulation_flag">Simulation</string>
+    <string name="flight_service_serial_flag">Serial</string>
+    <string name="flight_service_serial_url_flag">SerialUrl</string>
+    <string name="flight_service_serial_port_flag">SerialPort</string>
+    <string name="flight_service_tcp">TCP</string>
+    <string name="flight_service_xbee">XBee</string>
+    <string name="flight_service_serial_url">172.16.0.26</string>
+    <string name="flight_service_serial_port">1234</string>
 </resources>
