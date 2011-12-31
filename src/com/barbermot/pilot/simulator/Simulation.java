@@ -9,11 +9,14 @@ import java.util.concurrent.TimeUnit;
 import com.barbermot.pilot.builder.BuildException;
 import com.barbermot.pilot.builder.FlightBuilder;
 import com.barbermot.pilot.flight.FlightComputer;
+import com.barbermot.pilot.flight.FlightConfiguration;
+import com.barbermot.pilot.flight.FlightConfiguration.ConnectionType;
 import com.barbermot.pilot.signal.SignalManagerFactory;
 
 public class Simulation {
     
     public static void main(String[] args) {
+        FlightConfiguration.get().setConnectionType(ConnectionType.UART);
         PhysicsEngine engine = new PhysicsEngine();
         IOIO ioio = new IOIOSimulation(engine);
         FlightBuilder builder = new FlightBuilder();
