@@ -58,6 +58,7 @@ public abstract class FlightState<T> {
     }
     
     public void addTransition(FlightState<?> s) {
+        logger.info("adding transition: " + this.type + " -> " + s.getType());
         map.put(s.getType(), s);
     }
     

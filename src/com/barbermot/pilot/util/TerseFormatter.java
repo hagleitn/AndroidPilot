@@ -13,6 +13,10 @@ public class TerseFormatter extends Formatter {
         builder.append(r.getMillis());
         builder.append("\t");
         builder.append(r.getMessage());
+        if (r.getThrown() != null) {
+            builder.append(System.getProperty("line.separator"));
+            builder.append(r.getThrown());
+        }
         builder.append(System.getProperty("line.separator"));
         return builder.toString();
     }

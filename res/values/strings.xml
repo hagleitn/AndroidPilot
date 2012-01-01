@@ -11,5 +11,5 @@
     <string name="flight_service_tcp">TCP</string>
     <string name="flight_service_xbee">XBee</string>
     <string name="flight_service_serial_url">172.16.0.26</string>
-    <string name="flight_service_serial_port">1234</string>
+    <string name="flight_service_serial_port">6000</string>
 </resources>

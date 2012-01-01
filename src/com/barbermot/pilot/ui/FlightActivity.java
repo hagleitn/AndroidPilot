@@ -38,7 +38,7 @@ public class FlightActivity extends Activity {
         final EditText url = (EditText) findViewById(R.id.editText1);
         final EditText port = (EditText) findViewById(R.id.editText2);
         
-        // url.setText(getLocalIpAddress());
+        url.setText(getLocalIpAddress());
         // url.setEnabled(false);
         
         togglebutton.setChecked(isFlightServiceRunning() ? true : false);

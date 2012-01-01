@@ -27,7 +27,7 @@ public class Simulation {
         try {
             computer = builder.getComputer(ioio, null, null);
         } catch (BuildException e) {
-            e.printStackTrace();
+            e.getCause().printStackTrace();
         }
         
         for (Future<?> f : builder.getFutures()) {

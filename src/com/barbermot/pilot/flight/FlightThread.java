@@ -79,6 +79,7 @@ public class FlightThread extends Thread {
                     if (FlightConfiguration.get().isSimulation()) {
                         ioio = new IOIOSimulation(new PhysicsEngine());
                         Logger.getLogger("").addHandler(new AndroidHandler());
+                        logger.info("Simulation!");
                     } else {
                         ioio = IOIOFactory.create();
                     }
@@ -175,7 +176,7 @@ public class FlightThread extends Thread {
             signalManager = builder.getSignalManager();
             led = ioio.openDigitalOutput(0);
         } catch (BuildException e) {
-            e.getCause().printStackTrace();
+            logger.log(Level.SEVERE, "Build Exception", e.getCause());
         }
         logger.info("Setup complete.");
     }

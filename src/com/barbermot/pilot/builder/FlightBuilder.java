@@ -191,6 +191,7 @@ public class FlightBuilder {
     private void buildStreams() throws BuildException {
         logger.info("Setting up IO streams");
         if (config.getConnectionType() == ConnectionType.TCP) {
+            logger.info("Socket streams");
             try {
                 out = socket.getOutputStream();
                 in = socket.getInputStream();
@@ -198,6 +199,7 @@ public class FlightBuilder {
                 throw new BuildException(e);
             }
         } else {
+            logger.info("uart streams");
             in = uart.getInputStream();
             out = uart.getOutputStream();
         }
@@ -314,6 +316,7 @@ public class FlightBuilder {
         logger.info("Setting up printer");
         
         printer = new PrintStream(out);
+        printer.println("QuadCopter 0.1. Welcome to the matrix");
     }
     
     private void buildFlightStates() throws ConnectionLostException {
