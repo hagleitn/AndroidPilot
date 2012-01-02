@@ -73,9 +73,18 @@ public class SerialController implements Runnable {
         }
         
         StringBuffer sb = new StringBuffer();
-        char c;
-        while ((c = (char) in.read()) != ';') {
-            sb.append(c);
+        int ic;
+        while (true) {
+            ic = in.read();
+            char c = (char) ic;
+            
+            if (ic == -1) {
+                throw new IOException("EOS");
+            } else if (c == delim) {
+                break;
+            } else {
+                sb.append(c);
+            }
         }
         
         String cmd = sb.toString().trim();
