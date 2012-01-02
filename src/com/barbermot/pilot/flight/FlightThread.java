@@ -167,7 +167,7 @@ public class FlightThread extends Thread {
         logger.info("abort complete.");
     }
     
-    private void setup() throws ConnectionLostException {
+    private void setup() throws ConnectionLostException, InterruptedException {
         try {
             FlightBuilder builder = new FlightBuilder();
             computer = builder
@@ -177,6 +177,7 @@ public class FlightThread extends Thread {
             led = ioio.openDigitalOutput(0);
         } catch (BuildException e) {
             logger.log(Level.SEVERE, "Build Exception", e.getCause());
+            throw new ConnectionLostException(e);
         }
         logger.info("Setup complete.");
     }

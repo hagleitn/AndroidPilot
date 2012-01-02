@@ -8,11 +8,9 @@ import static com.barbermot.pilot.flight.FlightConfiguration.PinType.GAIN_IN;
 import static com.barbermot.pilot.flight.FlightConfiguration.PinType.GAIN_OUT;
 import static com.barbermot.pilot.flight.FlightConfiguration.PinType.RUDDER_IN;
 import static com.barbermot.pilot.flight.FlightConfiguration.PinType.RUDDER_OUT;
-import static com.barbermot.pilot.flight.FlightConfiguration.PinType.RX;
 import static com.barbermot.pilot.flight.FlightConfiguration.PinType.THROTTLE_IN;
 import static com.barbermot.pilot.flight.FlightConfiguration.PinType.THROTTLE_MONITOR;
 import static com.barbermot.pilot.flight.FlightConfiguration.PinType.THROTTLE_OUT;
-import static com.barbermot.pilot.flight.FlightConfiguration.PinType.TX;
 import static com.barbermot.pilot.flight.FlightConfiguration.PinType.ULTRA_SOUND;
 import static com.barbermot.pilot.flight.state.FlightState.Type.CALIBRATION;
 import static com.barbermot.pilot.flight.state.FlightState.Type.EMERGENCY_LANDING;
@@ -25,15 +23,10 @@ import static com.barbermot.pilot.flight.state.FlightState.Type.STABILIZED_HOVER
 import static com.barbermot.pilot.flight.state.FlightState.Type.WAYPOINT_HOLD;
 import static com.barbermot.pilot.flight.state.FlightState.Type.WAYPOINT_TRACK;
 import ioio.lib.api.IOIO;
-import ioio.lib.api.Uart;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -66,6 +59,9 @@ import com.barbermot.pilot.flight.state.ManualControlState;
 import com.barbermot.pilot.flight.state.StabilizedHoverState;
 import com.barbermot.pilot.flight.state.WaypointHoldState;
 import com.barbermot.pilot.flight.state.WaypointTrackState;
+import com.barbermot.pilot.io.Connection;
+import com.barbermot.pilot.io.SocketConnection;
+import com.barbermot.pilot.io.UartConnection;
 import com.barbermot.pilot.logger.FlightLogger;
 import com.barbermot.pilot.parser.SerialController;
 import com.barbermot.pilot.pid.AutoControl;
@@ -94,8 +90,6 @@ public class FlightBuilder {
     
     private FlightComputer                            computer;
     
-    private PrintStream                               printer;
-    
     private SensorManager                             sensorManager;
     private SignalManager                             signalManager;
     private LocationManager                           locationManager;
@@ -109,11 +103,7 @@ public class FlightBuilder {
     private Map<FlightConfiguration.PinType, Integer> map;
     
     private IOIO                                      ioio;
-    private Uart                                      uart;
-    private Socket                                    socket;
-    
-    private InputStream                               in;
-    private OutputStream                              out;
+    private Connection                                connection;
     
     private AutoControl                               autoThrottle;
     private AutoControl                               autoAileron;
@@ -137,9 +127,11 @@ public class FlightBuilder {
      *            An Android SensorManager to access the phone sensors
      * @return A one time instance of the FlightComputer
      * @throws BuildException
+     * @throws InterruptedException
      */
     public FlightComputer getComputer(IOIO ioio, SensorManager sensorManager,
-            LocationManager locationManager) throws BuildException {
+            LocationManager locationManager) throws BuildException,
+            InterruptedException {
         try {
             futures = new LinkedList<Future<?>>();
             this.sensorManager = sensorManager;
@@ -152,10 +144,7 @@ public class FlightBuilder {
             this.ioio = ioio;
             
             buildScheduler();
-            buildUart();
-            buildSocket();
-            buildStreams();
-            buildPrinter();
+            buildConnection();
             buildQuadCopter();
             buildRemoteControl();
             buildControls();
@@ -168,6 +157,8 @@ public class FlightBuilder {
             futures.add(scheduler.scheduleWithFixedDelay(computer, 0,
                     config.getMinTimeFlightComputer(), TimeUnit.MILLISECONDS));
         } catch (ConnectionLostException e) {
+            throw new BuildException(e);
+        } catch (IOException e) {
             throw new BuildException(e);
         }
         return computer;
@@ -188,42 +179,6 @@ public class FlightBuilder {
         return signalManager;
     }
     
-    private void buildStreams() throws BuildException {
-        logger.info("Setting up IO streams");
-        if (config.getConnectionType() == ConnectionType.TCP) {
-            logger.info("Socket streams");
-            try {
-                out = socket.getOutputStream();
-                in = socket.getInputStream();
-            } catch (IOException e) {
-                throw new BuildException(e);
-            }
-        } else {
-            logger.info("uart streams");
-            in = uart.getInputStream();
-            out = uart.getOutputStream();
-        }
-        
-    }
-    
-    private void buildSocket() throws BuildException {
-        if (config.getConnectionType() == ConnectionType.TCP) {
-            logger.info("Setting up socket (" + config.getSerialUrl() + ", "
-                    + config.getSerialPort() + ")");
-            try {
-                // ServerSocket server = new
-                // ServerSocket(config.getSerialPort());
-                // socket = server.accept();
-                socket = new Socket(config.getSerialUrl(),
-                        config.getSerialPort());
-            } catch (UnknownHostException e) {
-                throw new BuildException(e);
-            } catch (IOException e) {
-                throw new BuildException(e);
-            }
-        }
-    }
-    
     private void buildScheduler() {
         logger.info("Setting up scheduler");
         
@@ -231,29 +186,33 @@ public class FlightBuilder {
         computer.setExecutor(scheduler);
     }
     
-    private void buildUart() throws ConnectionLostException {
-        if (config.getConnectionType() == ConnectionType.UART) {
-            logger.info("Setting up UART");
-            
-            uart = ioio.openUart(config.getPinMap().get(RX), config.getPinMap()
-                    .get(TX), 9600, Uart.Parity.NONE, Uart.StopBits.ONE);
+    private void buildConnection() throws IOException, ConnectionLostException,
+            InterruptedException {
+        if (FlightConfiguration.get().getConnectionType() == ConnectionType.TCP) {
+            connection = new SocketConnection();
+        } else {
+            connection = new UartConnection(ioio);
         }
+        connection.reconnect();
+        (new PrintStream(connection.getOutputStream()))
+                .println("QuadCopter 0.1. Welcome to the matrix.");
     }
     
-    private void buildLogger() {
+    private void buildLogger() throws IOException {
         logger.info("Setting up logger");
         
-        FlightLogger logger = new FlightLogger(printer);
+        FlightLogger logger = new FlightLogger(connection);
         logger.setComputer(computer);
         futures.add(scheduler.scheduleWithFixedDelay(logger, 0,
                 config.getMinTimeStatusMessage(), TimeUnit.MILLISECONDS));
     }
     
-    private void buildSerialController() throws ConnectionLostException {
+    private void buildSerialController() throws ConnectionLostException,
+            IOException {
         logger.info("Setting up serial controller");
         
-        SerialController controller = new SerialController(computer, ';', in,
-                printer);
+        SerialController controller = new SerialController(computer, ';',
+                connection);
         futures.add(scheduler.submit(controller));
     }
     
@@ -310,13 +269,6 @@ public class FlightBuilder {
         
         futures.add(scheduler.scheduleWithFixedDelay(rc, 0,
                 config.getMinTimeRcEngagement(), TimeUnit.MILLISECONDS));
-    }
-    
-    private void buildPrinter() throws ConnectionLostException {
-        logger.info("Setting up printer");
-        
-        printer = new PrintStream(out);
-        printer.println("QuadCopter 0.1. Welcome to the matrix");
     }
     
     private void buildFlightStates() throws ConnectionLostException {

@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.barbermot.pilot.flight.FlightComputer;
+import com.barbermot.pilot.io.Connection;
 
 /**
  * SerialController is a tasks that waits for user input and relays commands to
@@ -21,31 +22,44 @@ public class SerialController implements Runnable {
     private long                startSleep;
     private long                sleepTime;
     private Parser              parser;
+    private Connection          connection;
     private PrintStream         printer;
     private InputStream         in;
     char                        delim;
     
     public SerialController(FlightComputer computer, char delim,
-            InputStream in, PrintStream printer) throws ConnectionLostException {
-        this.in = in;
+            Connection connection) throws ConnectionLostException, IOException {
+        this.connection = connection;
         this.parser = new Parser(computer);
-        this.printer = printer;
         this.delim = delim;
+        this.in = connection.getInputStream();
+        this.printer = new PrintStream(connection.getOutputStream());
     }
     
     @Override
     public void run() {
-        try {
-            while (true) {
+        while (true) {
+            try {
                 executeCommand();
+            } catch (ConnectionLostException e) {
+                logger.log(Level.WARNING, "Connection Lost", e);
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "IO problem, reconnecting", e);
+                try {
+                    reconnect();
+                } catch (Exception io) {
+                    throw new RuntimeException(io);
+                }
             }
-        } catch (ConnectionLostException e) {
-            logger.log(Level.WARNING, "Connection Lost", e);
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "IO problem", e);
-            throw new RuntimeException(e);
         }
+    }
+    
+    private void reconnect() throws IOException, ConnectionLostException,
+            InterruptedException {
+        connection.reconnect();
+        in = connection.getInputStream();
+        printer = new PrintStream(connection.getOutputStream());
     }
     
     public void executeCommand() throws IOException, ConnectionLostException {

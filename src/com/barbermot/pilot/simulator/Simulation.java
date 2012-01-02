@@ -28,6 +28,8 @@ public class Simulation {
             computer = builder.getComputer(ioio, null, null);
         } catch (BuildException e) {
             e.getCause().printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
         
         for (Future<?> f : builder.getFutures()) {

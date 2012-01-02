@@ -5,9 +5,11 @@ import static com.barbermot.pilot.quad.QuadCopter.Direction.LONGITUDINAL;
 import static com.barbermot.pilot.quad.QuadCopter.Direction.ROTATIONAL;
 import static com.barbermot.pilot.quad.QuadCopter.Direction.VERTICAL;
 
+import java.io.IOException;
 import java.io.PrintStream;
 
 import com.barbermot.pilot.flight.FlightComputer;
+import com.barbermot.pilot.io.Connection;
 
 /**
  * Flight Logger is a periodic task that logs information about the status of
@@ -16,11 +18,13 @@ import com.barbermot.pilot.flight.FlightComputer;
  */
 public class FlightLogger implements Runnable {
     
+    private Connection     connection;
     private PrintStream    printer;
     private FlightComputer computer;
     
-    public FlightLogger(PrintStream printer) {
-        this.printer = printer;
+    public FlightLogger(Connection connection) throws IOException {
+        this.connection = connection;
+        this.printer = new PrintStream(connection.getOutputStream());
     }
     
     public void setComputer(FlightComputer computer) {
@@ -45,6 +49,15 @@ public class FlightLogger implements Runnable {
                         computer.getUfo().read(LONGITUDINAL), // elevator
                         computer.getUfo().read(LATERAL), // aileron
                         computer.getUfo().read(ROTATIONAL)); // rudder
+        
         printer.println(str);
+        if (printer.checkError()) {
+            try {
+                connection.reconnect();
+                this.printer = new PrintStream(connection.getOutputStream());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
