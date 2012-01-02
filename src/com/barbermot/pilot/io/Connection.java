@@ -22,19 +22,11 @@ public abstract class Connection {
                 return;
             }
         }
-        int retries = 0;
+        
         while (true) {
             try {
                 reEstablishConnection();
             } catch (IOException e) {
-                if (retries++ == FlightConfiguration.get()
-                        .getConnectionRetries()) {
-                    synchronized (this) {
-                        isReconnecting = false;
-                        notifyAll();
-                        throw e;
-                    }
-                }
                 Thread.sleep(FlightConfiguration.get()
                         .getWaitBetweenConnectionRetries());
                 continue;
@@ -47,6 +39,7 @@ public abstract class Connection {
             }
             break;
         }
+        
         synchronized (this) {
             isReconnecting = false;
             notifyAll();

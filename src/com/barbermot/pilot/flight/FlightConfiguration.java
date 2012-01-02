@@ -90,7 +90,6 @@ public class FlightConfiguration {
     private static final float    CALIBRATION_HEIGHT              = 0.05f;
     private static final int      THROTTLE_STEP_FOR_CALIBRATION   = 5;
     private static final long     CALIBRATION_TIME_STEP           = 500;
-    private static final int      MAX_CONNECTION_RETRIES          = 20;
     private static final long     TIME_BETWEEN_CONNECTION_RETRIES = 1000;
     
     private Map<PinType, Integer> pinMap;
@@ -278,10 +277,6 @@ public class FlightConfiguration {
     
     public int getSerialPort() {
         return serialPort;
-    }
-    
-    public int getConnectionRetries() {
-        return MAX_CONNECTION_RETRIES;
     }
     
     public long getWaitBetweenConnectionRetries() {
