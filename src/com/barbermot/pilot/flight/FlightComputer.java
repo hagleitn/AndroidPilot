@@ -13,7 +13,7 @@ import ioio.lib.api.exception.ConnectionLostException;
 
 import java.io.PrintStream;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 import com.barbermot.pilot.flight.state.FlightState;
 import com.barbermot.pilot.pid.AutoControl;
@@ -160,7 +160,7 @@ public class FlightComputer implements Runnable {
             wp.altitude = this.getZeroGpsHeight() + height;
             state.transition(WAYPOINT_HOLD, wp);
         } catch (CloneNotSupportedException e) {
-            logger.warning("Waypoint clone not supported.");
+            logger.warn("Waypoint clone not supported.");
         }
     }
     

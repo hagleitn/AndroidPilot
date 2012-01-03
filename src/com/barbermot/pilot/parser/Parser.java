@@ -4,7 +4,7 @@ import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.NoSuchElementException;
 import java.util.Scanner;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 import com.barbermot.pilot.flight.FlightComputer;
 import com.barbermot.pilot.quad.QuadCopter;
@@ -276,6 +276,6 @@ public class Parser {
     }
     
     public void fail(String cmd) {
-        logger.warning("Failed to execute command:" + cmd);
+        logger.warn("Failed to execute command:" + cmd);
     }
 }

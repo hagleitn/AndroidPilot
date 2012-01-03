@@ -4,7 +4,7 @@ import ioio.lib.api.IOIO;
 import ioio.lib.api.PingPin;
 import ioio.lib.api.exception.ConnectionLostException;
 
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 public class UltrasoundSignal extends IoioSignal {
     

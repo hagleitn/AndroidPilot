@@ -8,7 +8,7 @@ import ioio.lib.api.exception.ConnectionLostException;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 import com.barbermot.pilot.flight.FlightConfiguration;
 

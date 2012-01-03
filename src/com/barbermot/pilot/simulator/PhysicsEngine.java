@@ -1,17 +1,15 @@
 package com.barbermot.pilot.simulator;
 
-import java.io.IOException;
 import java.util.Random;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 import com.barbermot.pilot.flight.FlightConfiguration;
 import com.barbermot.pilot.quad.QuadCopter;
-import com.barbermot.pilot.util.PassThruFormatter;
 
 public class PhysicsEngine {
     
-    private Logger       heightLogger;
+    private Logger      heightLogger;
     
     private double       msl;
     private int          lastThrottle;
@@ -83,34 +81,11 @@ public class PhysicsEngine {
     }
     
     public PhysicsEngine() {
-        heightLogger = Logger.getLogger("Height");
-        Logger yawLogger = Logger.getLogger("Yaw");
-        Logger rollLogger = Logger.getLogger("Roll");
-        Logger pitchLogger = Logger.getLogger("Pitch");
-        
-        try {
-            FileHandler handler = new FileHandler("/tmp/height%u.log");
-            handler.setFormatter(new PassThruFormatter());
-            handler.setFilter(null);
-            heightLogger.addHandler(handler);
-            
-            handler = new FileHandler("/tmp/yaw%u.log");
-            handler.setFormatter(new PassThruFormatter());
-            handler.setFilter(null);
-            yawLogger.addHandler(handler);
-            
-            handler = new FileHandler("/tmp/roll%u.log");
-            handler.setFormatter(new PassThruFormatter());
-            handler.setFilter(null);
-            rollLogger.addHandler(handler);
-            
-            handler = new FileHandler("/tmp/pitch%u.log");
-            handler.setFormatter(new PassThruFormatter());
-            handler.setFilter(null);
-            pitchLogger.addHandler(handler);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        heightLogger = Logger.getLogger("height");
+        heightLogger.info("height logger started");
+        Logger yawLogger = Logger.getLogger("yaw");
+        Logger rollLogger = Logger.getLogger("roll");
+        Logger pitchLogger = Logger.getLogger("pitch");
         
         baseMillis = lastMillisHeight = System.currentTimeMillis();
         msl = copterHeight;

@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 import com.barbermot.pilot.flight.FlightConfiguration;
 
@@ -25,7 +24,7 @@ public class SocketConnection extends Connection {
                 socket.shutdownInput(); // workaround to get exception on read()
                 socket.close();
             } catch (IOException io) {
-                logger.log(Level.WARNING, "Couldn't close socket.", io);
+                logger.warn("Couldn't close socket.", io);
             } finally {
                 socket = null;
             }

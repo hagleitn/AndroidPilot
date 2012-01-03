@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 import android.hardware.SensorManager;
 import android.location.LocationManager;

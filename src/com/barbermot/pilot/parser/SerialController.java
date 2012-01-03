@@ -5,8 +5,8 @@ import ioio.lib.api.exception.ConnectionLostException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 import com.barbermot.pilot.flight.FlightComputer;
 import com.barbermot.pilot.io.Connection;
@@ -42,10 +42,10 @@ public class SerialController implements Runnable {
             try {
                 executeCommand();
             } catch (ConnectionLostException e) {
-                logger.log(Level.WARNING, "Connection Lost", e);
+                logger.warn("Connection Lost", e);
                 throw new RuntimeException(e);
             } catch (IOException e) {
-                logger.log(Level.SEVERE, "IO problem, reconnecting", e);
+                logger.fatal("IO problem, reconnecting", e);
                 try {
                     reconnect();
                 } catch (Exception io) {

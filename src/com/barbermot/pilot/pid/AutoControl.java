@@ -2,7 +2,7 @@ package com.barbermot.pilot.pid;
 
 import ioio.lib.api.exception.ConnectionLostException;
 
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 import com.barbermot.pilot.signal.SignalListener;
 
@@ -57,7 +57,7 @@ public class AutoControl implements SignalListener {
             float timeDelta = time - lastTime;
             
             if (timeDelta <= 0) {
-                logger.fine("Message from the past: " + timeDelta);
+                logger.trace("Message from the past: " + timeDelta);
                 return;
             }
             
@@ -85,6 +85,7 @@ public class AutoControl implements SignalListener {
             lastTime = time;
             
             control.adjust(gTotal);
+            logger.info(String.format("%d\t%f\t%f\t%f\t%f\t%f", time, goal, value, pTotal, iTotal,dTotal));
         }
     }
     
