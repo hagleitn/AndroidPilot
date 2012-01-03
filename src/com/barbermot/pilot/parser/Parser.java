@@ -4,6 +4,7 @@ import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+
 import org.apache.log4j.Logger;
 
 import com.barbermot.pilot.flight.FlightComputer;

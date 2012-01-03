@@ -13,6 +13,7 @@ import ioio.lib.api.exception.ConnectionLostException;
 
 import java.io.PrintStream;
 import java.util.concurrent.ScheduledExecutorService;
+
 import org.apache.log4j.Logger;
 
 import com.barbermot.pilot.flight.state.FlightState;

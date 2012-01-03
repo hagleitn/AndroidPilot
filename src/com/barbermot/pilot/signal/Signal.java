@@ -11,7 +11,8 @@ public class Signal {
     
     protected Queue<SignalListener> listeners;
     
-    private static final Logger logger = Logger.getLogger("Signal");
+    private static final Logger     logger = Logger.getLogger("Signal");
+    
     public Signal() {
         super();
         listeners = new ConcurrentLinkedQueue<SignalListener>();

@@ -9,7 +9,7 @@ import com.barbermot.pilot.quad.QuadCopter;
 
 public class PhysicsEngine {
     
-    private Logger      heightLogger;
+    private Logger       heightLogger;
     
     private double       msl;
     private int          lastThrottle;

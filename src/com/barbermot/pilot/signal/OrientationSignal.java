@@ -6,6 +6,7 @@ import static com.barbermot.pilot.signal.OrientationSignal.Type.YAW;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.EnumMap;
+
 import org.apache.log4j.Logger;
 
 import android.hardware.Sensor;

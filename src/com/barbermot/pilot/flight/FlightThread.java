@@ -5,12 +5,12 @@ import ioio.lib.api.IOIO;
 import ioio.lib.api.IOIOFactory;
 import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.api.exception.IncompatibilityException;
-import com.barbermot.pilot.Log4jInitializer;
-import java.io.IOException;
+
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
 import org.apache.log4j.Logger;
 
 import android.hardware.SensorManager;
@@ -40,12 +40,13 @@ public class FlightThread extends Thread {
     private SignalManager   signalManager;
     
     static {
-      try {
-        Class.forName("com.barbermot.pilot.Log4jInitializer");
-      } catch (ClassNotFoundException e) {
-        e.printStackTrace();
-      }
+        try {
+            Class.forName("com.barbermot.pilot.Log4jInitializer");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
+    
     public FlightThread(SensorManager sensorManager,
             LocationManager locationManager) {
         this.sensorManager = sensorManager;

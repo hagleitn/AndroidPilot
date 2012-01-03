@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+
 import org.apache.log4j.Logger;
 
 import com.barbermot.pilot.flight.FlightConfiguration;

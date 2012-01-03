@@ -20,9 +20,10 @@ import com.barbermot.pilot.signal.SignalManagerFactory;
 public class Simulation {
     
     public static void main(String[] args) {
-        String fileName = System.getProperty("com.apache.log4j.logging.config.file", "qc.properties");
+        String fileName = System.getProperty(
+                "com.apache.log4j.logging.config.file", "qc.properties");
         URL url = Loader.getResource(fileName);
-        if(url != null) {
+        if (url != null) {
             PropertyConfigurator.configure(url);
         } else {
             PropertyConfigurator.configure(fileName);

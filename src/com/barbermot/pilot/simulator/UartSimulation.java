@@ -5,6 +5,7 @@ import ioio.lib.api.Uart;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
 import org.apache.log4j.Logger;
 
 public class UartSimulation implements Uart {

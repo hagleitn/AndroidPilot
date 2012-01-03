@@ -85,7 +85,8 @@ public class AutoControl implements SignalListener {
             lastTime = time;
             
             control.adjust(gTotal);
-            logger.info(String.format("%d\t%f\t%f\t%f\t%f\t%f", time, goal, value, pTotal, iTotal,dTotal));
+            logger.info(String.format("%d\t%f\t%f\t%f\t%f\t%f", time, goal,
+                    value, pTotal, iTotal, dTotal));
         }
     }
     

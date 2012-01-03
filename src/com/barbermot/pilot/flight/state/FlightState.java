@@ -3,6 +3,7 @@ package com.barbermot.pilot.flight.state;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.EnumMap;
+
 import org.apache.log4j.Logger;
 
 import com.barbermot.pilot.flight.FlightComputer;
@@ -26,7 +27,7 @@ public abstract class FlightState<T> {
     @SuppressWarnings("unchecked")
     public <D> void transition(Type nextType, D arg)
             throws ConnectionLostException {
-      String transitionTag = "from:"+type+"\tto:"+nextType;
+        String transitionTag = "from:" + type + "\tto:" + nextType;
         logger.info("transiting: " + transitionTag);
         if (map.containsKey(nextType)) {
             FlightState<D> nextState = (FlightState<D>) map.get(nextType);
