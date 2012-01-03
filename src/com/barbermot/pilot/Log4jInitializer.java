@@ -18,10 +18,7 @@ import android.util.Log;
 
 public class Log4jInitializer {
   static {
-    //String propertyFileName = System.getProperty("org.apache.log4j.config.file", "log4j.properties");
-    //final LogConfigurator logConfigurator = new LogConfigurator();
-    //logConfigurator.setFileName(Environment.getExternalStorageDirectory() + "/myapp.log");
-    
+
     PatternLayout terse   = new PatternLayout("%r %m%n");
     PatternLayout verbose = new PatternLayout("%r %-5p %c{2} - %m%n");
     
