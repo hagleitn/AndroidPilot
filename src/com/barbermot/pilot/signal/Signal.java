@@ -23,7 +23,7 @@ public class Signal {
     
     public void notifyListeners(float value, long time)
             throws ConnectionLostException {
-      logger.info(String.format("%d\t%f", time,value));
+        logger.info(String.format("%d\t%f", time, value));
         for (SignalListener l : listeners) {
             l.update(value, time);
         }
