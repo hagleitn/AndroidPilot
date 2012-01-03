@@ -2,9 +2,13 @@ package com.barbermot.pilot.simulator;
 
 import ioio.lib.api.IOIO;
 
+import java.net.URL;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.log4j.PropertyConfigurator;
+import org.apache.log4j.helpers.Loader;
 
 import com.barbermot.pilot.builder.BuildException;
 import com.barbermot.pilot.builder.FlightBuilder;
@@ -16,6 +20,13 @@ import com.barbermot.pilot.signal.SignalManagerFactory;
 public class Simulation {
     
     public static void main(String[] args) {
+        String fileName = System.getProperty("com.apache.log4j.logging.config.file", "qc.properties");
+        URL url = Loader.getResource(fileName);
+        if(url != null) {
+            PropertyConfigurator.configure(url);
+        } else {
+            PropertyConfigurator.configure(fileName);
+        }
         FlightConfiguration.get().setConnectionType(ConnectionType.UART);
         PhysicsEngine engine = new PhysicsEngine();
         IOIO ioio = new IOIOSimulation(engine);

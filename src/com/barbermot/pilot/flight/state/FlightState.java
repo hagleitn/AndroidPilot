@@ -3,7 +3,7 @@ package com.barbermot.pilot.flight.state;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.EnumMap;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 import com.barbermot.pilot.flight.FlightComputer;
 
@@ -26,18 +26,20 @@ public abstract class FlightState<T> {
     @SuppressWarnings("unchecked")
     public <D> void transition(Type nextType, D arg)
             throws ConnectionLostException {
-        logger.info("Transition: " + type + " -> " + nextType);
+      String transitionTag = "from:"+type+"\tto:"+nextType;
+        logger.info("transiting: " + transitionTag);
         if (map.containsKey(nextType)) {
             FlightState<D> nextState = (FlightState<D>) map.get(nextType);
             if (!nextState.guard(arg)) {
-                logger.warning("Condition for entry not met.");
+                logger.warn("entry condition failed for: " + transitionTag);
             } else {
                 exit();
                 computer.setState(nextState);
                 nextState.enter(arg);
+                logger.info("transited: " + transitionTag);
             }
         } else {
-            logger.warning("Illegal state transition requested.");
+            logger.warn("Illegal transition: " + transitionTag);
         }
     }
     
@@ -58,7 +60,7 @@ public abstract class FlightState<T> {
     }
     
     public void addTransition(FlightState<?> s) {
-        logger.info("adding transition: " + this.type + " -> " + s.getType());
+        logger.debug("adding transition: " + this.type + " -> " + s.getType());
         map.put(s.getType(), s);
     }
     

@@ -12,6 +12,7 @@ You'll need:
 To get started compiling the software:
 
 * Check out the project in Eclipse
+* Add android-logging-log4j-1.0.2.jar (will go away soon), log4j-1.2.16.jar to your classpath
 * Check out: https://github.com/hagleitn/ioio and link your android project to use it as the IOIO lib
 
 See here for more details on the IOIO: https://github.com/ytai/ioio

@@ -5,16 +5,13 @@ import ioio.lib.api.IOIO;
 import ioio.lib.api.IOIOFactory;
 import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.api.exception.IncompatibilityException;
-
+import com.barbermot.pilot.Log4jInitializer;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.FileHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 import android.hardware.SensorManager;
 import android.location.LocationManager;
@@ -24,8 +21,6 @@ import com.barbermot.pilot.builder.FlightBuilder;
 import com.barbermot.pilot.signal.SignalManager;
 import com.barbermot.pilot.simulator.IOIOSimulation;
 import com.barbermot.pilot.simulator.PhysicsEngine;
-import com.barbermot.pilot.util.AndroidHandler;
-import com.barbermot.pilot.util.TerseFormatter;
 
 public class FlightThread extends Thread {
     
@@ -44,28 +39,19 @@ public class FlightThread extends Thread {
     
     private SignalManager   signalManager;
     
+    static {
+      try {
+        Class.forName("com.barbermot.pilot.Log4jInitializer");
+      } catch (ClassNotFoundException e) {
+        e.printStackTrace();
+      }
+    }
     public FlightThread(SensorManager sensorManager,
             LocationManager locationManager) {
         this.sensorManager = sensorManager;
         this.locationManager = locationManager;
         
-        // Configure logger here
-        logger = Logger.getLogger("");
-        for (Handler h : logger.getHandlers()) {
-            logger.removeHandler(h);
-        }
-        
-        // logger.addHandler(new AndroidHandler());
-        try {
-            Handler handler = new FileHandler("/sdcard/flight%u.log", false);
-            handler.setFormatter(new TerseFormatter());
-            logger.addHandler(handler);
-        } catch (IOException e) {
-            logger.addHandler(new AndroidHandler());
-            logger.log(Level.SEVERE, "couldn't open file for log", e);
-        } finally {
-            logger = Logger.getLogger("FlightThread");
-        }
+        logger = Logger.getLogger("FlightThread");
     }
     
     @Override
@@ -78,7 +64,6 @@ public class FlightThread extends Thread {
                     }
                     if (FlightConfiguration.get().isSimulation()) {
                         ioio = new IOIOSimulation(new PhysicsEngine());
-                        Logger.getLogger("").addHandler(new AndroidHandler());
                         logger.info("Simulation!");
                     } else {
                         ioio = IOIOFactory.create();
@@ -98,7 +83,7 @@ public class FlightThread extends Thread {
                     break;
                 }
             } catch (IncompatibilityException e) {
-                logger.log(Level.SEVERE, "Incompatible IOIO firmware", e);
+                logger.fatal("Incompatible IOIO firmware", e);
                 // nothing to do - just wait until physical disconnection
                 try {
                     ioio.waitForDisconnect();
@@ -106,7 +91,7 @@ public class FlightThread extends Thread {
                     ioio.disconnect();
                 }
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "Unexpected exception caught", e);
+                logger.fatal("Unexpected exception caught", e);
                 ioio.disconnect();
                 break;
             } finally {
@@ -158,11 +143,11 @@ public class FlightThread extends Thread {
             if (computer != null && computer.getExecutor() != null) {
                 if (!computer.getExecutor().awaitTermination(60,
                         TimeUnit.SECONDS)) {
-                    logger.warning("Timeout while shutting down.");
+                    logger.warn("Timeout while shutting down.");
                 }
             }
         } catch (InterruptedException e) {
-            logger.log(Level.INFO, "InterruptedException caught");
+            logger.info("InterruptedException caught");
         }
         logger.info("abort complete.");
     }
@@ -176,7 +161,7 @@ public class FlightThread extends Thread {
             signalManager = builder.getSignalManager();
             led = ioio.openDigitalOutput(0);
         } catch (BuildException e) {
-            logger.log(Level.SEVERE, "Build Exception", e.getCause());
+            logger.fatal("Build Exception", e.getCause());
             throw new ConnectionLostException(e);
         }
         logger.info("Setup complete.");
@@ -190,12 +175,12 @@ public class FlightThread extends Thread {
             try {
                 f.get();
             } catch (InterruptedException e) {
-                logger.log(Level.INFO, "InterruptedException caught.", e);
+                logger.info("InterruptedException caught.", e);
                 break;
             } catch (ExecutionException e) {
                 Throwable ex = e;
                 while (ex != null) {
-                    logger.log(Level.SEVERE, "Exception caught.", ex);
+                    logger.fatal("Exception caught.", ex);
                     ex = ex.getCause();
                 }
             }

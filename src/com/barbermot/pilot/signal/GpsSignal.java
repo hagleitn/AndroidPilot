@@ -7,8 +7,8 @@ import static com.barbermot.pilot.signal.GpsSignal.Type.LON;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.EnumMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 import android.location.Location;
 import android.location.LocationListener;
@@ -82,7 +82,7 @@ class GpsSignal implements LocationListener, Runnable {
             listenerMap.get(LAT).update((float) location.getLatitude(), time);
             listenerMap.get(LON).update((float) location.getLongitude(), time);
         } catch (ConnectionLostException e) {
-            logger.log(Level.INFO, "Connection lost: ", e);
+            logger.info("Connection lost: ", e);
         }
         
     }
