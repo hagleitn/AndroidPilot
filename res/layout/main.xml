@@ -17,5 +17,6 @@
     <RadioButton android:layout_width="wrap_content" android:id="@+id/radio1" android:layout_height="wrap_content" android:text="@string/flight_service_xbee" android:checked="true"></RadioButton>
 </RadioGroup>
 <EditText android:layout_width="match_parent" android:id="@+id/editText1" android:layout_height="wrap_content" android:text="@string/flight_service_serial_url"></EditText>
-<EditText android:layout_width="match_parent" android:id="@+id/editText2" android:layout_height="wrap_content" android:text="@string/flight_service_serial_port"></EditText>	
+<EditText android:layout_width="match_parent" android:id="@+id/editText2" android:layout_height="wrap_content" android:text="@string/flight_service_serial_port"></EditText>
+<EditText android:layout_width="match_parent" android:id="@+id/editText3" android:layout_height="wrap_content" android:text="6001"></EditText>	
 </LinearLayout>

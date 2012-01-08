@@ -98,6 +98,7 @@ public class FlightConfiguration {
     private ConnectionType        connectionType;
     private String                serialUrl;
     private int                   serialPort;
+    private int                   remoteControlPort;
     
     public enum PinType {
         ULTRA_SOUND, AILERON_IN, RUDDER_IN, THROTTLE_IN, ELEVATOR_IN, GAIN_IN, AILERON_OUT, RUDDER_OUT, THROTTLE_OUT, ELEVATOR_OUT, GAIN_OUT, RX, TX, THROTTLE_MONITOR
@@ -281,5 +282,13 @@ public class FlightConfiguration {
     
     public long getWaitBetweenConnectionRetries() {
         return TIME_BETWEEN_CONNECTION_RETRIES;
+    }
+    
+    public void setRemoteControlPort(int port) {
+        remoteControlPort = port;
+    }
+    
+    public int getRemoteControlPort() {
+        return remoteControlPort;
     }
 }

@@ -69,6 +69,7 @@ import com.barbermot.pilot.pid.AutoControl;
 import com.barbermot.pilot.pid.GpsAutoControl;
 import com.barbermot.pilot.pid.RadianAutoControl;
 import com.barbermot.pilot.quad.QuadCopter;
+import com.barbermot.pilot.rc.NetworkRemote;
 import com.barbermot.pilot.rc.RemoteControl;
 import com.barbermot.pilot.signal.Signal;
 import com.barbermot.pilot.signal.SignalListener;
@@ -118,6 +119,8 @@ public class FlightBuilder {
     private EnumMap<FlightState.Type, FlightState<?>> stateMap;
     private List<Future<?>>                           futures;
     
+    private NetworkRemote                             networkRemote;
+    
     /**
      * getComputer builds the FlightComputer. It hooks up the controls to the
      * respective signals and starts processing.
@@ -148,6 +151,7 @@ public class FlightBuilder {
             buildConnection();
             buildQuadCopter();
             buildRemoteControl();
+            buildNetworkRemote();
             buildControls();
             buildFlightStates();
             buildTransitions();
@@ -256,6 +260,15 @@ public class FlightBuilder {
         ufo = new QuadCopter(ioio, map.get(AILERON_OUT), map.get(RUDDER_OUT),
                 map.get(THROTTLE_OUT), map.get(ELEVATOR_OUT), map.get(GAIN_OUT));
         computer.setUfo(ufo);
+    }
+    
+    private void buildNetworkRemote() throws IOException {
+        logger.info("Setting up network remote");
+        
+        networkRemote = new NetworkRemote();
+        networkRemote.setExecutorService(scheduler);
+        networkRemote.setUfo(ufo);
+        futures.add(scheduler.submit(networkRemote));
     }
     
     private void buildRemoteControl() throws ConnectionLostException {

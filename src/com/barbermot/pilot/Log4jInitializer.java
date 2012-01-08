@@ -29,9 +29,10 @@ public class Log4jInitializer {
         
         DailyRollingFileAppender data;
         try {
-            data = new DailyRollingFileAppender(terse, "/sdcard/data.txt",
-                    "'_'yyyy-MM-dd-HH-mm'.dat'");
+            data = new DailyRollingFileAppender(terse,
+                    "/sdcard/barbermot/data.txt", "'_'yyyy-MM-dd-HH'.txt'");
             data.setBufferedIO(true);
+            data.setBufferSize(4096);
             data.setImmediateFlush(false);
             data.setThreshold(Level.DEBUG);
             
@@ -52,10 +53,11 @@ public class Log4jInitializer {
         
         DailyRollingFileAppender state;
         try {
-            state = new DailyRollingFileAppender(terse, "/sdcard/state.txt",
-                    "'_'yyyy-MM-dd-HH-mm'.dat'");
+            state = new DailyRollingFileAppender(terse,
+                    "/sdcard/barbermot/state.txt", "'_'yyyy-MM-dd-HH'.txt'");
             state.setBufferedIO(true);
-            state.setImmediateFlush(false);
+            state.setBufferSize(512);
+            state.setImmediateFlush(true);
             state.setThreshold(Level.DEBUG);
             Logger logger = Logger.getLogger("FlightState");
             logger.addAppender(state);

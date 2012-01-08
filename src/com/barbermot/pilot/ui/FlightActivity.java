@@ -37,6 +37,7 @@ public class FlightActivity extends Activity {
         final RadioGroup group = (RadioGroup) findViewById(R.id.radioGroup1);
         final EditText url = (EditText) findViewById(R.id.editText1);
         final EditText port = (EditText) findViewById(R.id.editText2);
+        final EditText remotePort = (EditText) findViewById(R.id.editText3);
         
         url.setText(getLocalIpAddress());
         // url.setEnabled(false);
@@ -69,7 +70,7 @@ public class FlightActivity extends Activity {
                             getString(R.string.flight_service_serial_url_flag),
                             url.getText().toString());
                     
-                    int portNum = 3333;
+                    int portNum = 6000;
                     try {
                         portNum = Integer.parseInt(port.getText().toString());
                     } catch (NumberFormatException e) {
@@ -79,6 +80,19 @@ public class FlightActivity extends Activity {
                     start.putExtra(
                             getString(R.string.flight_service_serial_port_flag),
                             portNum);
+                    
+                    int remotePortNum = 6001;
+                    try {
+                        remotePortNum = Integer.parseInt(remotePort.getText()
+                                .toString());
+                    } catch (NumberFormatException e) {
+                        Log.w(TAG, "Couldn't parse remote port");
+                    }
+                    
+                    start.putExtra(
+                            getString(R.string.flight_service_remote_port_flag),
+                            remotePortNum);
+                    
                     FlightActivity.this.startService(start);
                 } else {
                     Log.i(TAG, "Stopping service...");

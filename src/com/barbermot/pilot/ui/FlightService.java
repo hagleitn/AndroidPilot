@@ -46,6 +46,9 @@ public class FlightService extends Service {
         FlightConfiguration.get().setSerialPort(
                 b.getInt(getString(R.string.flight_service_serial_port_flag)));
         
+        FlightConfiguration.get().setRemoteControlPort(
+                b.getInt(getString(R.string.flight_service_remote_port_flag)));
+        
         flightThread.start();
         return START_STICKY;
     }
