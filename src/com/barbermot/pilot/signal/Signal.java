@@ -9,10 +9,9 @@ import org.apache.log4j.Logger;
 
 public class Signal {
     
+    protected static Logger logger = Logger.getLogger("Signal");
     protected Queue<SignalListener> listeners;
-    
-    private static final Logger     logger = Logger.getLogger("Signal");
-    
+
     public Signal() {
         super();
         listeners = new ConcurrentLinkedQueue<SignalListener>();
