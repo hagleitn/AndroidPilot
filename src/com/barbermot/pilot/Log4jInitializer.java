@@ -3,60 +3,54 @@ package com.barbermot.pilot;
 import java.io.IOException;
 
 import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.DailyRollingFileAppender;
+import org.apache.log4j.FileAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+import org.apache.log4j.Priority;
 
 import de.mindpipe.android.logging.log4j.LogCatAppender;
 
 public class Log4jInitializer {
-    
+
     static {
-        
-        PatternLayout terse = new PatternLayout("%r %m%n");
+
+        PatternLayout terse = new PatternLayout("%c %r %m%n");
         PatternLayout verbose = new PatternLayout("%r %-5p %c{2} - %m%n");
-        
+
         ConsoleAppender console = new ConsoleAppender(verbose);
-        console.setImmediateFlush(false);
-        console.setThreshold(Level.DEBUG);
-        
+        console.setImmediateFlush(true);
+        console.setThreshold(Priority.DEBUG);
+
         LogCatAppender logcat = new LogCatAppender(terse);
-        logcat.setThreshold(Level.DEBUG);
+        logcat.setThreshold(Priority.DEBUG);
         Logger rootLogger = Logger.getRootLogger();
         rootLogger.setLevel(Level.INFO);
         rootLogger.addAppender(logcat);
-        
-        DailyRollingFileAppender data;
+
+        FileAppender data;
         try {
-            data = new DailyRollingFileAppender(terse, "/sdcard/data.txt",
-                    "'_'yyyy-MM-dd-HH-mm'.dat'");
-            data.setBufferedIO(true);
-            data.setImmediateFlush(false);
-            data.setThreshold(Level.DEBUG);
-            
-            String[] logNames = { "AutoControl", "GpsSignal",
-            "ThrottleControl", "ThrottleGpsControl", "AileronControl",
-            "AileronGpsControl", "RudderControl", "ElevatorControl",
-            "ElevatorGpsControl", "Signal" };
-            
+            String dataFile = "/sdcard/data.txt";
+            data = new FileAppender(terse, dataFile);
+            // data.setBufferedIO(false);
+            data.setImmediateFlush(true);
+
+            String[] logNames = { "AutoControl", "GpsSignal", "ThrottleControl", "ThrottleGpsControl", "AileronControl",
+            "AileronGpsControl", "RudderControl", "ElevatorControl", "ElevatorGpsControl", "Signal" };
+
             for (String name : logNames) {
                 Logger logger = Logger.getLogger(name);
-                logger.setLevel(Level.DEBUG);
                 logger.addAppender(data);
             }
-            
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
-        DailyRollingFileAppender state;
+
+        FileAppender state;
         try {
-            state = new DailyRollingFileAppender(terse, "/sdcard/state.txt",
-                    "'_'yyyy-MM-dd-HH-mm'.dat'");
-            state.setBufferedIO(true);
-            state.setImmediateFlush(false);
-            state.setThreshold(Level.DEBUG);
+            state = new FileAppender(terse, "/sdcard/state.txt");
+            state.setBufferedIO(false);
+            state.setImmediateFlush(true);
             Logger logger = Logger.getLogger("FlightState");
             logger.addAppender(state);
         } catch (IOException e) {
