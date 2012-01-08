@@ -15,7 +15,7 @@ public abstract class FlightState<T> {
         GROUND, HOVER, STABILIZED_HOVER, WAYPOINT_HOLD, WAYPOINT_TRACK, LANDING, FAILED, EMERGENCY_LANDING, MANUAL_CONTROL, CALIBRATION
     };
     
-    protected static final Logger           logger = Logger.getLogger("FlightState");
+    protected static Logger                 logger = Logger.getLogger("FlightState");
     private Type                            type;
     protected EnumMap<Type, FlightState<?>> map;
     protected FlightComputer                computer;
