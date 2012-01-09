@@ -8,7 +8,8 @@ import java.util.Scanner;
 import org.apache.log4j.Logger;
 
 import com.barbermot.pilot.flight.FlightComputer;
-import com.barbermot.pilot.quad.QuadCopter;
+import com.barbermot.pilot.flight.FlightConfiguration;
+import com.barbermot.pilot.quad.QuadCopterImpl;
 
 public class Parser {
     
@@ -39,6 +40,16 @@ public class Parser {
                     }
                     break;
                 
+                case 'j':
+                case 'J':
+                    if (scanner.hasNextInt()) {
+                        x = scanner.nextInt();
+                        FlightConfiguration.get().setDefaultGain(x);
+                    } else {
+                        fail(cmd);
+                    }
+                    break;
+                
                 // k calibrates the throttle
                 case 'k':
                 case 'K':
@@ -53,19 +64,19 @@ public class Parser {
                         int on;
                         if (scanner.hasNextInt()) {
                             on = scanner.nextInt();
-                            QuadCopter.Direction d = null;
+                            QuadCopterImpl.Direction d = null;
                             switch (x) {
                                 case 0:
-                                    d = QuadCopter.Direction.LATERAL;
+                                    d = QuadCopterImpl.Direction.LATERAL;
                                     break;
                                 case 1:
-                                    d = QuadCopter.Direction.LONGITUDINAL;
+                                    d = QuadCopterImpl.Direction.LONGITUDINAL;
                                     break;
                                 case 2:
-                                    d = QuadCopter.Direction.ROTATIONAL;
+                                    d = QuadCopterImpl.Direction.ROTATIONAL;
                                     break;
                                 case 3:
-                                    d = QuadCopter.Direction.VERTICAL;
+                                    d = QuadCopterImpl.Direction.VERTICAL;
                                     break;
                                 default:
                                     break;

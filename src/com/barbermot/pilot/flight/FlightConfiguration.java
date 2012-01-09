@@ -95,10 +95,12 @@ public class FlightConfiguration {
     private Map<PinType, Integer> pinMap;
     
     private boolean               isSimulation;
-    private ConnectionType        connectionType;
+    private ConnectionType        connectionType                  = ConnectionType.TCP;
     private String                serialUrl;
     private int                   serialPort;
     private int                   remoteControlPort;
+    private ConnectionType        remoteControlType               = ConnectionType.TCP;
+    private int                   defaultGain                     = QuadCopter.STOP_SPEED;
     
     public enum PinType {
         ULTRA_SOUND, AILERON_IN, RUDDER_IN, THROTTLE_IN, ELEVATOR_IN, GAIN_IN, AILERON_OUT, RUDDER_OUT, THROTTLE_OUT, ELEVATOR_OUT, GAIN_OUT, RX, TX, THROTTLE_MONITOR
@@ -290,5 +292,17 @@ public class FlightConfiguration {
     
     public int getRemoteControlPort() {
         return remoteControlPort;
+    }
+    
+    public ConnectionType getRemoteControlType() {
+        return remoteControlType;
+    }
+    
+    public int getDefaultGain() {
+        return defaultGain;
+    }
+    
+    public void setDefaultGain(int gain) {
+        defaultGain = gain;
     }
 }

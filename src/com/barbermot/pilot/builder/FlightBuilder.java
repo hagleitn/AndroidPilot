@@ -69,8 +69,12 @@ import com.barbermot.pilot.pid.AutoControl;
 import com.barbermot.pilot.pid.GpsAutoControl;
 import com.barbermot.pilot.pid.RadianAutoControl;
 import com.barbermot.pilot.quad.QuadCopter;
+import com.barbermot.pilot.quad.QuadCopterImpl;
+import com.barbermot.pilot.rc.ExternalRemote;
 import com.barbermot.pilot.rc.NetworkRemote;
+import com.barbermot.pilot.rc.NetworkRemoteServer;
 import com.barbermot.pilot.rc.RemoteControl;
+import com.barbermot.pilot.rc.SwitchedQuadCopter;
 import com.barbermot.pilot.signal.Signal;
 import com.barbermot.pilot.signal.SignalListener;
 import com.barbermot.pilot.signal.SignalManager;
@@ -119,7 +123,11 @@ public class FlightBuilder {
     private EnumMap<FlightState.Type, FlightState<?>> stateMap;
     private List<Future<?>>                           futures;
     
-    private NetworkRemote                             networkRemote;
+    private NetworkRemoteServer                       networkRemoteServer;
+    
+    private SwitchedQuadCopter                        manualControlCopter;
+    
+    private SwitchedQuadCopter                        computerControlCopter;
     
     /**
      * getComputer builds the FlightComputer. It hooks up the controls to the
@@ -150,8 +158,9 @@ public class FlightBuilder {
             buildScheduler();
             buildConnection();
             buildQuadCopter();
+            buildSwitchedQuadCopters();
             buildRemoteControl();
-            buildNetworkRemote();
+            buildNetworkRemoteServer();
             buildControls();
             buildFlightStates();
             buildTransitions();
@@ -208,6 +217,7 @@ public class FlightBuilder {
         
         FlightLogger logger = new FlightLogger(connection);
         logger.setComputer(computer);
+        logger.setQuadCopter(ufo);
         futures.add(scheduler.scheduleWithFixedDelay(logger, 0,
                 config.getMinTimeStatusMessage(), TimeUnit.MILLISECONDS));
     }
@@ -257,27 +267,44 @@ public class FlightBuilder {
     private void buildQuadCopter() throws ConnectionLostException {
         logger.info("Setting up Quadcopter");
         
-        ufo = new QuadCopter(ioio, map.get(AILERON_OUT), map.get(RUDDER_OUT),
-                map.get(THROTTLE_OUT), map.get(ELEVATOR_OUT), map.get(GAIN_OUT));
-        computer.setUfo(ufo);
+        ufo = new QuadCopterImpl(ioio, map.get(AILERON_OUT),
+                map.get(RUDDER_OUT), map.get(THROTTLE_OUT),
+                map.get(ELEVATOR_OUT), map.get(GAIN_OUT));
     }
     
-    private void buildNetworkRemote() throws IOException {
+    private void buildSwitchedQuadCopters() {
+        manualControlCopter = new SwitchedQuadCopter();
+        manualControlCopter.setQuadCopter(ufo);
+        
+        computerControlCopter = new SwitchedQuadCopter();
+        computerControlCopter.setQuadCopter(ufo);
+        computer.setUfo(computerControlCopter);
+    }
+    
+    private void buildNetworkRemoteServer() throws IOException {
         logger.info("Setting up network remote");
         
-        networkRemote = new NetworkRemote();
-        networkRemote.setExecutorService(scheduler);
-        networkRemote.setUfo(ufo);
-        futures.add(scheduler.submit(networkRemote));
+        networkRemoteServer = new NetworkRemoteServer();
+        networkRemoteServer.setExecutorService(scheduler);
+        networkRemoteServer.setUfo(manualControlCopter);
+        futures.add(scheduler.submit(networkRemoteServer));
     }
     
     private void buildRemoteControl() throws ConnectionLostException {
         logger.info("Setting up remote control");
         
-        RemoteControl rc = new RemoteControl(ioio, ufo, map.get(AILERON_IN),
-                map.get(RUDDER_IN), map.get(THROTTLE_IN), map.get(ELEVATOR_IN),
-                map.get(THROTTLE_MONITOR), map.get(GAIN_IN));
+        RemoteControl rc;
         
+        if (FlightConfiguration.get().getRemoteControlType() == ConnectionType.TCP) {
+            rc = new NetworkRemote(ufo, manualControlCopter,
+                    computerControlCopter);
+        } else {
+            rc = new ExternalRemote(ioio, ufo, map.get(AILERON_IN),
+                    map.get(RUDDER_IN), map.get(THROTTLE_IN),
+                    map.get(ELEVATOR_IN), map.get(THROTTLE_MONITOR),
+                    map.get(GAIN_IN));
+            
+        }
         rc.setControlMask((char) ~RemoteControl.THROTTLE_MASK);
         computer.setRc(rc);
         

@@ -61,4 +61,8 @@ class Servo {
     private int mapReverse(int value) {
         return minIn + (maxIn - minIn) * (value - minOut) / (maxOut - minOut);
     }
+    
+    public int convert(int speed) {
+        return map(speed);
+    }
 }

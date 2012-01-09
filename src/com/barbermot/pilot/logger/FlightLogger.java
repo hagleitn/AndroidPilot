@@ -10,6 +10,7 @@ import java.io.PrintStream;
 
 import com.barbermot.pilot.flight.FlightComputer;
 import com.barbermot.pilot.io.Connection;
+import com.barbermot.pilot.quad.QuadCopter;
 
 /**
  * Flight Logger is a periodic task that logs information about the status of
@@ -21,6 +22,7 @@ public class FlightLogger implements Runnable {
     private Connection     connection;
     private PrintStream    printer;
     private FlightComputer computer;
+    private QuadCopter     ufo;
     
     public FlightLogger(Connection connection) throws IOException {
         this.connection = connection;
@@ -29,6 +31,10 @@ public class FlightLogger implements Runnable {
     
     public void setComputer(FlightComputer computer) {
         this.computer = computer;
+    }
+    
+    public void setQuadCopter(QuadCopter ufo) {
+        this.ufo = ufo;
     }
     
     @Override
@@ -45,10 +51,10 @@ public class FlightLogger implements Runnable {
                         computer.getGpsHeight(), // height in meters (gps)
                         computer.getLatitude(), // lat measured by gps
                         computer.getLongitude(), // lon measured by gps
-                        computer.getUfo().read(VERTICAL), // throttle
-                        computer.getUfo().read(LONGITUDINAL), // elevator
-                        computer.getUfo().read(LATERAL), // aileron
-                        computer.getUfo().read(ROTATIONAL)); // rudder
+                        ufo.read(VERTICAL), // throttle
+                        ufo.read(LONGITUDINAL), // elevator
+                        ufo.read(LATERAL), // aileron
+                        ufo.read(ROTATIONAL)); // rudder
         
         printer.println(str);
         if (printer.checkError()) {

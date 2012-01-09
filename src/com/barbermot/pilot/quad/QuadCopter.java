@@ -4,70 +4,39 @@ import static com.barbermot.pilot.quad.QuadCopter.Direction.LATERAL;
 import static com.barbermot.pilot.quad.QuadCopter.Direction.LONGITUDINAL;
 import static com.barbermot.pilot.quad.QuadCopter.Direction.ROTATIONAL;
 import static com.barbermot.pilot.quad.QuadCopter.Direction.VERTICAL;
-import ioio.lib.api.IOIO;
 import ioio.lib.api.exception.ConnectionLostException;
 
-import java.util.EnumMap;
 import java.util.Map;
 
-/**
- * Interface to the QuadCopter's servos. Allows to directly set values for all
- * control dimensions.
- * 
- */
-public class QuadCopter {
+public abstract class QuadCopter {
     
     public enum Direction {
         LONGITUDINAL, LATERAL, VERTICAL, ROTATIONAL
-    };
-    
-    public static final int             MIN_SPEED  = -100;
-    public static final int             STOP_SPEED = 0;
-    public static final int             MAX_SPEED  = 100;
-    
-    public static final int             MIN_SERVO  = 1050; // measured min
-                                                           // activation
-    public static final int             MAX_SERVO  = 1950; // measured max
-                                                           // response
-                                                           
-    private EnumMap<Direction, Servo>   servos;
-    private Servo                       gain;
-    
-    private EnumMap<Direction, Integer> pins;
-    
-    /*
-     * Color map for GU-344 gyroscope pins (available with GAUI 330X)
-     * aileronPin; // White rudderPin; // Yellow throttlePin; // Orange
-     * elevatorPin; // Red gainPin; // Green (Gain/Gear)
-     */
-    public QuadCopter(IOIO ioio, int aileronPin, int rudderPin,
-            int throttlePin, int elevatorPin, int gainPin)
-            throws ConnectionLostException {
-        pins = new EnumMap<Direction, Integer>(Direction.class);
-        pins.put(LONGITUDINAL, elevatorPin); // Red
-        pins.put(LATERAL, aileronPin); // White
-        pins.put(VERTICAL, throttlePin); // Orange
-        pins.put(ROTATIONAL, rudderPin); // Yellow
-        
-        servos = new EnumMap<Direction, Servo>(Direction.class);
-        
-        for (Direction d : Direction.values()) {
-            servos.put(d, new Servo(ioio, pins.get(d), MIN_SPEED, MAX_SPEED,
-                    MIN_SERVO, MAX_SERVO));
-        }
-        
-        gain = new Servo(ioio, gainPin, MIN_SPEED, MAX_SPEED, MIN_SERVO,
-                MAX_SERVO);
-        
     }
     
-    public boolean isInverted(Direction d) {
-        return servos.get(d).isInverted();
+    public static final int MIN_SPEED  = -100;
+    public static final int STOP_SPEED = 0;
+    public static final int MAX_SPEED  = 100;
+    
+    public QuadCopter() {
+        super();
     }
     
-    public void invert(Direction d, boolean on) {
-        servos.get(d).invert(on);
-    }
+    public abstract void move(Direction d, int speed)
+            throws ConnectionLostException;
+    
+    public abstract boolean isInverted(Direction d);
+    
+    public abstract void invert(Direction d, boolean on);
+    
+    public abstract int read(Direction d);
+    
+    public abstract void adjustGain(int value) throws ConnectionLostException;
+    
+    public abstract int readRaw(Direction d);
+    
+    public abstract void writeRaw(Direction d, int ms)
+            throws ConnectionLostException;
     
     public void move(int x, int y, int z, int r) throws ConnectionLostException {
         move(LONGITUDINAL, x);
@@ -82,20 +51,6 @@ public class QuadCopter {
         }
     }
     
-    public void move(Direction d, int speed) throws ConnectionLostException {
-        if (speed > MAX_SPEED) {
-            speed = MAX_SPEED;
-        } else if (speed < MIN_SPEED) {
-            speed = MIN_SPEED;
-        }
-        
-        Servo s = servos.get(d);
-        
-        if (speed != s.read()) {
-            s.write(speed);
-        }
-    }
-    
     public void stop(Direction d) throws ConnectionLostException {
         move(d, STOP_SPEED);
     }
@@ -104,10 +59,6 @@ public class QuadCopter {
         for (Direction d : Direction.values()) {
             stop(d);
         }
-    }
-    
-    public int read(Direction d) {
-        return servos.get(d).read();
     }
     
     public void throttle(int speed) throws ConnectionLostException {
@@ -126,15 +77,5 @@ public class QuadCopter {
         move(ROTATIONAL, speed);
     }
     
-    public void adjustGain(int value) throws ConnectionLostException {
-        gain.write(value);
-    }
-    
-    public int readRaw(Direction d) {
-        return servos.get(d).readRaw();
-    }
-    
-    public void writeRaw(Direction d, int ms) throws ConnectionLostException {
-        servos.get(d).writeRaw(ms);
-    }
+    public abstract int convert(Direction d, int speed);
 }

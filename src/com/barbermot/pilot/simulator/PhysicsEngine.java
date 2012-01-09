@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 
 import com.barbermot.pilot.flight.FlightConfiguration;
 import com.barbermot.pilot.quad.QuadCopter;
+import com.barbermot.pilot.quad.QuadCopterImpl;
 
 public class PhysicsEngine {
     
@@ -152,23 +153,23 @@ public class PhysicsEngine {
         if (pin == throttlePin) {
             updateHeight();
             lastThrottle = mapReverse(pulseWidthUs, QuadCopter.MIN_SPEED,
-                    QuadCopter.MAX_SPEED, QuadCopter.MIN_SERVO,
-                    QuadCopter.MAX_SERVO);
+                    QuadCopter.MAX_SPEED, QuadCopterImpl.MIN_SERVO,
+                    QuadCopterImpl.MAX_SERVO);
         } else if (pin == rudderPin) {
             yaw.updateDirection();
             yaw.lastControlInput = mapReverse(pulseWidthUs,
                     QuadCopter.MIN_SPEED, QuadCopter.MAX_SPEED,
-                    QuadCopter.MIN_SERVO, QuadCopter.MAX_SERVO);
+                    QuadCopterImpl.MIN_SERVO, QuadCopterImpl.MAX_SERVO);
         } else if (pin == aileronPin) {
             roll.updateDirection();
             roll.lastControlInput = mapReverse(pulseWidthUs,
                     QuadCopter.MIN_SPEED, QuadCopter.MAX_SPEED,
-                    QuadCopter.MIN_SERVO, QuadCopter.MAX_SERVO);
+                    QuadCopterImpl.MIN_SERVO, QuadCopterImpl.MAX_SERVO);
         } else if (pin == elevatorPin) {
             pitch.updateDirection();
             pitch.lastControlInput = mapReverse(pulseWidthUs,
                     QuadCopter.MIN_SPEED, QuadCopter.MAX_SPEED,
-                    QuadCopter.MIN_SERVO, QuadCopter.MAX_SERVO);
+                    QuadCopterImpl.MIN_SERVO, QuadCopterImpl.MAX_SERVO);
         }
     }
     
